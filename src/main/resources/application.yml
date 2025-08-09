@@ -5,6 +5,21 @@ spring:
 server:
   port: 8080
 
+# Project info from Maven (injected at build time)
+app:
+  version: @project.version@
+  name: @project.name@
+  description: @project.description@
+  dependencies:
+    spring-boot: @spring-boot.version@
+    langchain4j: @langchain4j.version@
+    caffeine: @caffeine.version@
+    swagger-parser: @swagger-parser.version@
+    json-schema-validator: @json-schema-validator.version@
+  java:
+    version: @maven.compiler.target@
+    source: @maven.compiler.source@
+
 ollama:
   base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
   model-name: ${OLLAMA_MODEL:codellama:7b}

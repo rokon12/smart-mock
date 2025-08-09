@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Mock - AI-Powered API Mock Server</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white py-5">
+        <div class="container text-center">
+            <h1 class="display-3 fw-bold mb-3">
+                <i class="bi bi-robot"></i> Smart Mock Server
+            </h1>
+            <p class="lead fs-4 mb-4">AI-Powered API Mocking with OpenAPI</p>
+            
+            <div th:if="${specLoaded}" class="alert alert-success d-inline-block">
+                <i class="bi bi-check-circle-fill"></i>
+                OpenAPI spec loaded: <strong th:text="${specTitle}">API</strong>
+            </div>
+            <div th:unless="${specLoaded}" class="alert alert-warning d-inline-block">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                No OpenAPI spec loaded yet
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <!-- Spec Details -->
+        <div th:if="${specLoaded}" class="card mb-5 border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-file-code"></i> Loaded Specification Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Title:</strong> <span th:text="${specTitle}">API Title</span></p>
+                        <p th:if="${specVersion}"><strong>Version:</strong> 
+                            <span class="badge bg-primary" th:text="${specVersion}">1.0.0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p th:if="${specDescription}"><strong>Description:</strong> 
+                            <span th:text="${specDescription}">API Description</span>
+                        </p>
+                        <p><strong>Endpoints:</strong> 
+                            <span class="badge bg-info text-dark" th:text="${endpointCount + ' endpoints available'}">0 endpoints</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <section class="mb-5">
+            <h2 class="display-6 mb-4"><i class="bi bi-stars"></i> Features</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 feature-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-cpu feature-icon text-primary"></i>
+                                LLM-Powered Responses
+                            </h5>
+                            <p class="card-text">Generates intelligent, context-aware mock data using Ollama with local language models</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 feature-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-file-earmark-code feature-icon text-success"></i>
+                                OpenAPI Integration
+                            </h5>
+                            <p class="card-text">Automatically creates endpoints from your OpenAPI/Swagger specifications</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 feature-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-mask feature-icon text-warning"></i>
+                                Scenario Testing
+                            </h5>
+                            <p class="card-text">Switch between happy path, edge cases, errors, and rate limiting scenarios</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 feature-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-dice-5 feature-icon text-info"></i>
+                                Deterministic Mode
+                            </h5>
+                            <p class="card-text">Use seeds for reproducible responses in testing pipelines</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 feature-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-lightning-charge feature-icon text-danger"></i>
+                                Performance Caching
+                            </h5>
+                            <p class="card-text">Intelligent response caching with Caffeine for sub-millisecond responses</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 feature-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-clock-history feature-icon text-secondary"></i>
+                                Latency Simulation
+                            </h5>
+                            <p class="card-text">Simulate real-world network conditions with configurable delays</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Control Headers -->
+        <section class="mb-5">
+            <h2 class="display-6 mb-4"><i class="bi bi-sliders"></i> Control Headers</h2>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Header</th>
+                            <th>Description</th>
+                            <th>Example Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>X-Mock-Scenario</code></td>
+                            <td>Choose response scenario</td>
+                            <td>
+                                <span class="badge bg-success me-1">happy</span>
+                                <span class="badge bg-warning me-1">edge</span>
+                                <span class="badge bg-danger me-1">invalid</span>
+                                <span class="badge bg-info me-1">rate-limit</span>
+                                <span class="badge bg-dark">server-error</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>X-Mock-Seed</code></td>
+                            <td>Deterministic response generation</td>
+                            <td><code>test-seed-123</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>X-Mock-Temperature</code></td>
+                            <td>Control response variation (0-1)</td>
+                            <td><code>0.5</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>X-Mock-Latency</code></td>
+                            <td>Simulate network delay</td>
+                            <td><code>250ms</code>, <code>1.5s</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>X-Mock-Status</code></td>
+                            <td>Override response status code</td>
+                            <td><code>201</code>, <code>404</code>, <code>500</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Quick Start -->
+        <section class="mb-5">
+            <h2 class="display-6 mb-4"><i class="bi bi-rocket-takeoff"></i> Quick Start</h2>
+            <div class="card bg-dark text-white">
+                <div class="card-body position-relative">
+                    <button class="btn btn-sm btn-outline-light copy-btn position-absolute top-0 end-0 m-3" 
+                            onclick="copyCode('quickstart-code')">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                    <pre class="mb-0"><code class="language-bash" id="quickstart-code"># 1. Upload your OpenAPI spec
+curl -X POST http://localhost:8080/admin/spec \
+  -H "Content-Type: application/yaml" \
+  --data-binary @your-api-spec.yaml
+
+# 2. Test mock endpoints
+curl http://localhost:8080/mock/your-endpoint
+
+# 3. Try different scenarios
+curl -H "X-Mock-Scenario: server-error" \
+     http://localhost:8080/mock/your-endpoint</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Endpoints -->
+        <section class="mb-5">
+            <h2 class="display-6 mb-4"><i class="bi bi-gear"></i> Admin Endpoints</h2>
+            <div class="list-group">
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-3">POST</span>
+                        <div>
+                            <code class="fs-6">/admin/spec</code>
+                            <p class="mb-0 text-muted small">Upload OpenAPI specification</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-primary me-3">GET</span>
+                        <div>
+                            <code class="fs-6">/admin/spec</code>
+                            <p class="mb-0 text-muted small">View current specification</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-3">POST</span>
+                        <div>
+                            <code class="fs-6">/admin/spec/file?filePath={path}</code>
+                            <p class="mb-0 text-muted small">Load spec from file</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technology Stack -->
+        <section class="mb-5">
+            <h2 class="display-6 mb-4"><i class="bi bi-stack"></i> Technology Stack</h2>
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-4" th:each="tech : ${techStack}">
+                    <div class="tech-item p-3 rounded bg-light">
+                        <h6 class="fw-bold" th:text="${tech.key}">Technology</h6>
+                        <small class="text-muted" th:text="${tech.value}">Description</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">Smart Mock Server - AI-Powered API Mocking</p>
+            <small class="text-muted">
+                Version <span th:text="${projectVersion}">1.0</span> | 
+                Built with Spring Boot & LangChain4j
+            </small>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
