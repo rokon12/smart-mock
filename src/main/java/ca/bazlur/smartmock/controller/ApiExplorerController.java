@@ -11,6 +11,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -27,8 +29,21 @@ public class ApiExplorerController {
     
     @GetMapping(value = "/api-spec", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<String> getApiSpec() {
+    public ResponseEntity<String> getApiSpec(HttpServletRequest request) {
         try {
+            // Build the dynamic server URL from the request
+            String scheme = request.getScheme();
+            String serverName = request.getServerName();
+            int serverPort = request.getServerPort();
+            String contextPath = request.getContextPath();
+            
+            String serverUrl = scheme + "://" + serverName;
+            if ((scheme.equals("http") && serverPort != 80) || 
+                (scheme.equals("https") && serverPort != 443)) {
+                serverUrl += ":" + serverPort;
+            }
+            serverUrl += contextPath + "/mock";
+            
             // First try to return the raw spec content if available
             if (openApiIndex.getRawSpecContent() != null) {
                 // Convert YAML to JSON if needed
@@ -47,8 +62,8 @@ public class ApiExplorerController {
                 // Add/update the servers section to point to our mock endpoint
                 java.util.List<Map<String, Object>> servers = new java.util.ArrayList<>();
                 Map<String, Object> localServer = new java.util.HashMap<>();
-                localServer.put("url", "http://localhost:8080/mock");
-                localServer.put("description", "Local Mock Server");
+                localServer.put("url", serverUrl);
+                localServer.put("description", "Mock Server");
                 servers.add(localServer);
                 spec.put("servers", servers);
                 
@@ -57,24 +72,25 @@ public class ApiExplorerController {
             
             // Fallback: Return a default spec when nothing is loaded
             if (openApiIndex.getOpenAPI() == null) {
-                String defaultSpec = """
-                    {
-                      "openapi": "3.0.0",
-                      "info": {
-                        "title": "Smart Mock Server",
-                        "version": "1.0",
-                        "description": "No OpenAPI specification loaded. Please upload a spec file."
-                      },
-                      "servers": [
-                        {
-                          "url": "http://localhost:8080/mock",
-                          "description": "Local Mock Server"
-                        }
-                      ],
-                      "paths": {}
-                    }
-                    """;
-                return ResponseEntity.ok(defaultSpec);
+                Map<String, Object> defaultSpec = new java.util.HashMap<>();
+                defaultSpec.put("openapi", "3.0.0");
+                
+                Map<String, Object> info = new java.util.HashMap<>();
+                info.put("title", "Smart Mock Server");
+                info.put("version", "1.0");
+                info.put("description", "No OpenAPI specification loaded. Please upload a spec file.");
+                defaultSpec.put("info", info);
+                
+                java.util.List<Map<String, Object>> servers = new java.util.ArrayList<>();
+                Map<String, Object> localServer = new java.util.HashMap<>();
+                localServer.put("url", serverUrl);
+                localServer.put("description", "Mock Server");
+                servers.add(localServer);
+                defaultSpec.put("servers", servers);
+                
+                defaultSpec.put("paths", new java.util.HashMap<>());
+                
+                return ResponseEntity.ok(objectMapper.writeValueAsString(defaultSpec));
             }
             
             // If we have a parsed spec but no raw content, add servers and serialize
@@ -82,9 +98,9 @@ public class ApiExplorerController {
             
             // Set up servers to point to our mock endpoint
             io.swagger.v3.oas.models.servers.Server server = new io.swagger.v3.oas.models.servers.Server();
-            server.setUrl("http://localhost:8080/mock");
-            server.setDescription("Local Mock Server");
-            spec.setServers(java.util.Arrays.asList(server));
+            server.setUrl(serverUrl);
+            server.setDescription("Mock Server");
+            spec.setServers(List.of(server));
             
             io.swagger.v3.core.util.Json.mapper().setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
             String json = io.swagger.v3.core.util.Json.pretty(spec);
