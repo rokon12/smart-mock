@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: smart-mock
+
+server:
+  port: 8080
+
+ollama:
+  base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+  model-name: ${OLLAMA_MODEL:codellama:7b}
+  temperature: ${OLLAMA_TEMPERATURE:0.2}
+  timeout: ${OLLAMA_TIMEOUT:60}
+
+logging:
+  level:
+    ca.bazlur.smartmock: ${LOG_LEVEL:INFO}
+    dev.langchain4j: ${LANGCHAIN_LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+cache:
+  max-size: ${CACHE_MAX_SIZE:1000}
+  expire-minutes: ${CACHE_EXPIRE_MINUTES:15}
