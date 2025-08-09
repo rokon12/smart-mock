@@ -45,3 +45,26 @@ management:
 cache:
   max-size: ${CACHE_MAX_SIZE:1000}
   expire-minutes: ${CACHE_EXPIRE_MINUTES:15}
+
+# Swagger UI Configuration
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    deep-linking: true
+    display-operation-id: false
+    default-models-expand-depth: 1
+    default-model-expand-depth: 1
+    disable-swagger-default-url: true
+    doc-expansion: none
+    filter: true
+    show-extensions: true
+    show-common-extensions: true
+    url: /api-spec
+  api-docs:
+    enabled: false
+  show-actuator: false

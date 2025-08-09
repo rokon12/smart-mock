@@ -87,6 +87,9 @@
                     </div>
                 </div>
                 <div class="mt-3">
+                    <a href="/swagger-ui.html" class="btn btn-primary" target="_blank">
+                        <i class="bi bi-box-arrow-up-right"></i> Explore API
+                    </a>
                     <button class="btn btn-sm btn-outline-primary" onclick="viewSpec()">
                         <i class="bi bi-eye"></i> View Full Spec
                     </button>
@@ -164,6 +167,17 @@
                                 Latency Simulation
                             </h5>
                             <p class="card-text">Simulate real-world network conditions with configurable delays</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 feature-card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-compass feature-icon text-purple"></i>
+                                Interactive API Explorer
+                            </h5>
+                            <p class="card-text">Browse and test your API endpoints with built-in Swagger UI</p>
                         </div>
                     </div>
                 </div>
@@ -271,6 +285,24 @@ curl -H "X-Mock-Scenario: server-error" \
                         <div>
                             <code class="fs-6">/admin/spec/file?filePath={path}</code>
                             <p class="mb-0 text-muted small">Load spec from file</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-info me-3">GET</span>
+                        <div>
+                            <code class="fs-6">/swagger-ui.html</code>
+                            <p class="mb-0 text-muted small">Interactive API Explorer (Swagger UI)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-primary me-3">GET</span>
+                        <div>
+                            <code class="fs-6">/api-spec</code>
+                            <p class="mb-0 text-muted small">Current OpenAPI spec in JSON format</p>
                         </div>
                     </div>
                 </div>

@@ -25,14 +25,20 @@ public class OpenApiIndex {
     
     @Getter
     private OpenAPI openAPI;
+    
+    @Getter
+    private String rawSpecContent;
 
     public void loadSpec(String specContent) {
+        this.rawSpecContent = specContent;
         this.openAPI = new OpenAPIV3Parser().readContents(specContent).getOpenAPI();
         indexEndpoints();
     }
 
     public void loadSpecFromFile(String filePath) {
         this.openAPI = new OpenAPIV3Parser().read(filePath);
+        // For file loading, we don't have raw content readily available
+        this.rawSpecContent = null;
         indexEndpoints();
     }
 

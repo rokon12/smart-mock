@@ -38,6 +38,10 @@
     margin-right: 0.5rem;
 }
 
+.text-purple {
+    color: #6f42c1;
+}
+
 /* Tech Items */
 .tech-item {
     transition: all 0.2s ease;
