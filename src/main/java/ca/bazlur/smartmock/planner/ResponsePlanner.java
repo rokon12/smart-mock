@@ -71,11 +71,10 @@ public class ResponsePlanner {
         }
 
         return switch (scenario) {
-            case HAPPY -> findSuccessStatus(endpoint);
+            case HAPPY, EDGE -> findSuccessStatus(endpoint);
             case INVALID -> 400;
             case RATE_LIMIT -> 429;
             case SERVER_ERROR -> 500;
-            case EDGE -> findSuccessStatus(endpoint);
         };
     }
 

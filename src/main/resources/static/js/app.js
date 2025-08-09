@@ -1,5 +1,200 @@
 // Smart Mock Server - JavaScript functionality
 
+// Handle spec file upload
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', handleSpecUpload);
+    }
+});
+
+// Upload OpenAPI specification
+async function handleSpecUpload(event) {
+    event.preventDefault();
+    
+    const fileInput = document.getElementById('specFile');
+    const file = fileInput.files[0];
+    const alertDiv = document.getElementById('uploadAlert');
+    
+    if (!file) {
+        showUploadAlert('Please select a file', 'danger');
+        return;
+    }
+    
+    // Show loading state
+    showUploadAlert('Uploading specification...', 'info');
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+    
+    try {
+        const content = await file.text();
+        const contentType = file.name.endsWith('.json') ? 'application/json' : 'application/yaml';
+        
+        const response = await fetch('/admin/spec', {
+            method: 'POST',
+            headers: {
+                'Content-Type': contentType
+            },
+            body: content
+        });
+        
+        if (response.ok) {
+            showUploadAlert('Specification uploaded successfully! Reloading...', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            const error = await response.text();
+            showUploadAlert(`Upload failed: ${error}`, 'danger');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    } catch (error) {
+        showUploadAlert(`Error: ${error.message}`, 'danger');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// Load sample Pet Store spec
+async function loadSampleSpec() {
+    const alertDiv = document.getElementById('uploadAlert');
+    showUploadAlert('Loading sample specification...', 'info');
+    
+    try {
+        // First, try to load the sample spec from resources
+        const response = await fetch('/sample-petstore.yaml');
+        let specContent;
+        
+        if (response.ok) {
+            specContent = await response.text();
+        } else {
+            // Fallback: load from file path
+            const fileResponse = await fetch('/admin/spec/file?filePath=src/main/resources/sample-petstore.yaml', {
+                method: 'POST'
+            });
+            
+            if (fileResponse.ok) {
+                showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+                return;
+            }
+        }
+        
+        // Upload the spec content
+        if (specContent) {
+            const uploadResponse = await fetch('/admin/spec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/yaml'
+                },
+                body: specContent
+            });
+            
+            if (uploadResponse.ok) {
+                showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showUploadAlert('Failed to load sample specification', 'danger');
+            }
+        }
+    } catch (error) {
+        showUploadAlert(`Error loading sample: ${error.message}`, 'danger');
+    }
+}
+
+// Clear current spec
+async function clearSpec() {
+    if (confirm('Are you sure you want to clear the current specification?')) {
+        // Since we don't have a clear endpoint, we'll upload an empty spec
+        // Or you could add a clear endpoint to the backend
+        showNotification('Specification cleared. Please upload a new one.', 'info');
+        // For now, just reload to show the upload form
+        window.location.reload();
+    }
+}
+
+// View full specification
+async function viewSpec() {
+    const modal = new bootstrap.Modal(document.getElementById('specModal'));
+    const specContent = document.getElementById('specContent');
+    
+    specContent.textContent = 'Loading...';
+    modal.show();
+    
+    try {
+        const response = await fetch('/admin/spec');
+        if (response.ok) {
+            const spec = await response.json();
+            const yamlContent = JSON.stringify(spec, null, 2);
+            specContent.textContent = yamlContent;
+            
+            // Re-highlight syntax
+            if (window.Prism) {
+                Prism.highlightElement(specContent);
+            }
+        } else {
+            specContent.textContent = 'Failed to load specification';
+        }
+    } catch (error) {
+        specContent.textContent = `Error: ${error.message}`;
+    }
+}
+
+// Download specification
+async function downloadSpec() {
+    try {
+        const response = await fetch('/admin/spec');
+        if (response.ok) {
+            const spec = await response.json();
+            const yamlContent = JSON.stringify(spec, null, 2);
+            
+            // Create blob and download
+            const blob = new Blob([yamlContent], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'openapi-spec.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('Specification downloaded successfully', 'success');
+        }
+    } catch (error) {
+        showNotification(`Download failed: ${error.message}`, 'danger');
+    }
+}
+
+// Copy specification to clipboard
+function copySpec() {
+    const specContent = document.getElementById('specContent');
+    const text = specContent.textContent;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Specification copied to clipboard', 'success');
+    }).catch(err => {
+        showNotification('Failed to copy to clipboard', 'danger');
+    });
+}
+
+// Show upload alert
+function showUploadAlert(message, type) {
+    const alertDiv = document.getElementById('uploadAlert');
+    if (alertDiv) {
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        alertDiv.classList.remove('d-none');
+    }
+}
+
 // Copy code to clipboard
 function copyCode(elementId) {
     const codeElement = document.getElementById(elementId);
