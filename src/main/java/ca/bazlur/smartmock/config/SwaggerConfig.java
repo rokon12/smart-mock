@@ -30,10 +30,12 @@ public class SwaggerConfig implements WebMvcConfigurer {
     
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        // Allow CORS for mock endpoints (so Swagger UI can call them)
         registry.addMapping("/mock/**")
                 .allowedOrigins("*")
                 .allowedMethods("*")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .exposedHeaders("*");
         
         registry.addMapping("/api-spec")
                 .allowedOrigins("*")
