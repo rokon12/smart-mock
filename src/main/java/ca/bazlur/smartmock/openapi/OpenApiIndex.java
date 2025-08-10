@@ -58,6 +58,13 @@ public class OpenApiIndex {
         this.rawSpecContent = null; // unknown
         indexEndpoints();
     }
+    
+    public void clear() {
+        this.openAPI = null;
+        this.rawSpecContent = null;
+        this.endpoints.clear();
+        log.info("OpenAPI spec cleared");
+    }
 
     private void indexEndpoints() {
         endpoints.clear();

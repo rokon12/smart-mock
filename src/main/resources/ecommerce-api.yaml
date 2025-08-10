@@ -1,0 +1,1795 @@
+openapi: 3.0.3
+info:
+  title: E-Commerce Platform API
+  description: A comprehensive e-commerce API with products, orders, customers, and inventory management
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+
+tags:
+  - name: Products
+    description: Product catalog management
+  - name: Orders
+    description: Order processing and management
+  - name: Customers
+    description: Customer account management
+  - name: Cart
+    description: Shopping cart operations
+  - name: Inventory
+    description: Inventory tracking
+  - name: Reviews
+    description: Product reviews and ratings
+
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: List all products
+      description: Retrieve a paginated list of products with optional filtering
+      operationId: listProducts
+      parameters:
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+            enum: [electronics, clothing, books, home, sports, toys]
+        - name: minPrice
+          in: query
+          description: Minimum price filter
+          schema:
+            type: number
+            format: float
+            minimum: 0
+        - name: maxPrice
+          in: query
+          description: Maximum price filter
+          schema:
+            type: number
+            format: float
+        - name: inStock
+          in: query
+          description: Filter by stock availability
+          schema:
+            type: boolean
+        - name: brand
+          in: query
+          description: Filter by brand name
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search products by name or description
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: Sort products by field
+          schema:
+            type: string
+            enum: [price, name, rating, createdAt]
+            default: createdAt
+        - name: sortOrder
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Products
+      summary: Create a new product
+      description: Add a new product to the catalog
+      operationId: createProduct
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /products/{productId}:
+    get:
+      tags:
+        - Products
+      summary: Get product details
+      description: Retrieve detailed information about a specific product
+      operationId: getProduct
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Products
+      summary: Update product
+      description: Update an existing product
+      operationId: updateProduct
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      description: Remove a product from the catalog
+      operationId: deleteProduct
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '204':
+          description: Product deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /products/{productId}/inventory:
+    get:
+      tags:
+        - Inventory
+      summary: Get product inventory
+      description: Get current inventory levels for a product
+      operationId: getProductInventory
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Inventory information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Inventory
+      summary: Update inventory
+      description: Update inventory levels for a product
+      operationId: updateInventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+                operation:
+                  type: string
+                  enum: [set, increment, decrement]
+                  description: Operation to perform on quantity
+              required:
+                - quantity
+                - operation
+      responses:
+        '200':
+          description: Inventory updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /products/{productId}/reviews:
+    get:
+      tags:
+        - Reviews
+      summary: List product reviews
+      description: Get all reviews for a specific product
+      operationId: getProductReviews
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+        - name: rating
+          in: query
+          description: Filter by rating
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+        - name: verified
+          in: query
+          description: Filter by verified purchase
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+                  summary:
+                    $ref: '#/components/schemas/ReviewSummary'
+
+    post:
+      tags:
+        - Reviews
+      summary: Add product review
+      description: Submit a review for a product
+      operationId: createReview
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewInput'
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Review already exists from this user
+
+  /customers:
+    post:
+      tags:
+        - Customers
+      summary: Register new customer
+      description: Create a new customer account
+      operationId: registerCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRegistration'
+      responses:
+        '201':
+          description: Customer registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already exists
+
+  /customers/{customerId}:
+    get:
+      tags:
+        - Customers
+      summary: Get customer profile
+      description: Retrieve customer information
+      operationId: getCustomer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Customers
+      summary: Update customer profile
+      description: Update customer information
+      operationId: updateCustomer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdate'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /customers/{customerId}/addresses:
+    get:
+      tags:
+        - Customers
+      summary: List customer addresses
+      description: Get all addresses for a customer
+      operationId: getCustomerAddresses
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: List of addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Customers
+      summary: Add new address
+      description: Add a new address to customer profile
+      operationId: addCustomerAddress
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressInput'
+      responses:
+        '201':
+          description: Address added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /cart:
+    get:
+      tags:
+        - Cart
+      summary: Get current cart
+      description: Retrieve the current user's shopping cart
+      operationId: getCart
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Shopping cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Cart
+      summary: Add item to cart
+      description: Add a product to the shopping cart
+      operationId: addToCart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemInput'
+      responses:
+        '200':
+          description: Item added to cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Product not found
+        '409':
+          description: Insufficient inventory
+
+    delete:
+      tags:
+        - Cart
+      summary: Clear cart
+      description: Remove all items from the cart
+      operationId: clearCart
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Cart cleared
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /cart/items/{itemId}:
+    patch:
+      tags:
+        - Cart
+      summary: Update cart item quantity
+      description: Modify the quantity of an item in the cart
+      operationId: updateCartItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+              required:
+                - quantity
+      responses:
+        '200':
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Item not found in cart
+
+    delete:
+      tags:
+        - Cart
+      summary: Remove item from cart
+      description: Remove a specific item from the cart
+      operationId: removeFromCart
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Item removed from cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Item not found in cart
+
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: List orders
+      description: Get a list of orders for the authenticated customer
+      operationId: listOrders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by order status
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+        - name: from
+          in: query
+          description: Filter orders from date
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: Filter orders to date
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderSummary'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Orders
+      summary: Create order from cart
+      description: Checkout and create an order from the current cart
+      operationId: createOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Cart is empty or inventory insufficient
+
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Get order details
+      description: Retrieve detailed information about a specific order
+      operationId: getOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Orders
+      summary: Update order status
+      description: Update the status of an order (admin only)
+      operationId: updateOrderStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/OrderStatus'
+                trackingNumber:
+                  type: string
+                  description: Shipping tracking number
+                notes:
+                  type: string
+                  description: Internal notes about status change
+              required:
+                - status
+      responses:
+        '200':
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders/{orderId}/cancel:
+    post:
+      tags:
+        - Orders
+      summary: Cancel order
+      description: Request cancellation of an order
+      operationId: cancelOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Cancellation reason
+              required:
+                - reason
+      responses:
+        '200':
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Order cannot be cancelled
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+          description: Stock Keeping Unit
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [electronics, clothing, books, home, sports, toys]
+        brand:
+          type: string
+        price:
+          type: number
+          format: float
+          minimum: 0
+        compareAtPrice:
+          type: number
+          format: float
+          description: Original price before discount
+        currency:
+          type: string
+          default: USD
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+        tags:
+          type: array
+          items:
+            type: string
+        inStock:
+          type: boolean
+        stockQuantity:
+          type: integer
+          minimum: 0
+        rating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+        reviewCount:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sku
+        - name
+        - price
+        - category
+        - inStock
+
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            specifications:
+              type: object
+              additionalProperties:
+                type: string
+            variants:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductVariant'
+            relatedProducts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+
+    ProductInput:
+      type: object
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [electronics, clothing, books, home, sports, toys]
+        brand:
+          type: string
+        price:
+          type: number
+          format: float
+          minimum: 0
+        compareAtPrice:
+          type: number
+          format: float
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImageInput'
+        specifications:
+          type: object
+          additionalProperties:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        stockQuantity:
+          type: integer
+          minimum: 0
+      required:
+        - sku
+        - name
+        - price
+        - category
+        - stockQuantity
+
+    ProductImage:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        alt:
+          type: string
+        isPrimary:
+          type: boolean
+      required:
+        - url
+
+    ProductImageInput:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        alt:
+          type: string
+        isPrimary:
+          type: boolean
+      required:
+        - url
+
+    ProductVariant:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sku:
+          type: string
+        price:
+          type: number
+          format: float
+        attributes:
+          type: object
+          properties:
+            color:
+              type: string
+            size:
+              type: string
+            material:
+              type: string
+        stockQuantity:
+          type: integer
+          minimum: 0
+      required:
+        - id
+        - name
+        - sku
+        - price
+
+    Inventory:
+      type: object
+      properties:
+        productId:
+          type: string
+        sku:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0
+        reserved:
+          type: integer
+          minimum: 0
+          description: Quantity reserved for pending orders
+        available:
+          type: integer
+          minimum: 0
+          description: Quantity available for purchase
+        warehouse:
+          type: array
+          items:
+            type: object
+            properties:
+              locationId:
+                type: string
+              name:
+                type: string
+              quantity:
+                type: integer
+                minimum: 0
+        lastRestocked:
+          type: string
+          format: date-time
+        lowStockThreshold:
+          type: integer
+          minimum: 0
+        isLowStock:
+          type: boolean
+      required:
+        - productId
+        - quantity
+        - available
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+        customerId:
+          type: string
+        customerName:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+        comment:
+          type: string
+        pros:
+          type: array
+          items:
+            type: string
+        cons:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+        verifiedPurchase:
+          type: boolean
+        helpful:
+          type: integer
+          minimum: 0
+        notHelpful:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - productId
+        - customerId
+        - rating
+        - comment
+
+    ReviewInput:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+          maxLength: 100
+        comment:
+          type: string
+          maxLength: 5000
+        pros:
+          type: array
+          items:
+            type: string
+        cons:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+      required:
+        - rating
+        - comment
+
+    ReviewSummary:
+      type: object
+      properties:
+        averageRating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+        totalReviews:
+          type: integer
+          minimum: 0
+        ratingDistribution:
+          type: object
+          properties:
+            '1':
+              type: integer
+            '2':
+              type: integer
+            '3':
+              type: integer
+            '4':
+              type: integer
+            '5':
+              type: integer
+        verifiedPurchaseCount:
+          type: integer
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+
+    CustomerProfile:
+      allOf:
+        - $ref: '#/components/schemas/Customer'
+        - type: object
+          properties:
+            addresses:
+              type: array
+              items:
+                $ref: '#/components/schemas/Address'
+            preferences:
+              type: object
+              properties:
+                newsletter:
+                  type: boolean
+                smsAlerts:
+                  type: boolean
+                language:
+                  type: string
+            loyaltyPoints:
+              type: integer
+              minimum: 0
+            tier:
+              type: string
+              enum: [bronze, silver, gold, platinum]
+            totalOrders:
+              type: integer
+              minimum: 0
+            totalSpent:
+              type: number
+              format: float
+              minimum: 0
+
+    CustomerRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        newsletterOptIn:
+          type: boolean
+          default: false
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+
+    CustomerUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        preferences:
+          type: object
+          properties:
+            newsletter:
+              type: boolean
+            smsAlerts:
+              type: boolean
+            language:
+              type: string
+
+    Address:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [shipping, billing, both]
+        isDefault:
+          type: boolean
+        firstName:
+          type: string
+        lastName:
+          type: string
+        company:
+          type: string
+        street1:
+          type: string
+        street2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        phone:
+          type: string
+      required:
+        - id
+        - type
+        - firstName
+        - lastName
+        - street1
+        - city
+        - state
+        - postalCode
+        - country
+
+    AddressInput:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [shipping, billing, both]
+        isDefault:
+          type: boolean
+        firstName:
+          type: string
+        lastName:
+          type: string
+        company:
+          type: string
+        street1:
+          type: string
+        street2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        phone:
+          type: string
+      required:
+        - type
+        - firstName
+        - lastName
+        - street1
+        - city
+        - state
+        - postalCode
+        - country
+
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        subtotal:
+          type: number
+          format: float
+          minimum: 0
+        tax:
+          type: number
+          format: float
+          minimum: 0
+        shipping:
+          type: number
+          format: float
+          minimum: 0
+        discount:
+          type: number
+          format: float
+          minimum: 0
+        total:
+          type: number
+          format: float
+          minimum: 0
+        couponCode:
+          type: string
+        currency:
+          type: string
+          default: USD
+        expiresAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - items
+        - subtotal
+        - total
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        product:
+          $ref: '#/components/schemas/Product'
+        variantId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          format: float
+          minimum: 0
+        total:
+          type: number
+          format: float
+          minimum: 0
+        addedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - productId
+        - quantity
+        - price
+        - total
+
+    CartItemInput:
+      type: object
+      properties:
+        productId:
+          type: string
+        variantId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+      required:
+        - productId
+        - quantity
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderNumber:
+          type: string
+        customerId:
+          type: string
+        customer:
+          $ref: '#/components/schemas/Customer'
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          $ref: '#/components/schemas/Address'
+        payment:
+          $ref: '#/components/schemas/PaymentInfo'
+        shipping:
+          $ref: '#/components/schemas/ShippingInfo'
+        subtotal:
+          type: number
+          format: float
+          minimum: 0
+        tax:
+          type: number
+          format: float
+          minimum: 0
+        shippingCost:
+          type: number
+          format: float
+          minimum: 0
+        discount:
+          type: number
+          format: float
+          minimum: 0
+        total:
+          type: number
+          format: float
+          minimum: 0
+        currency:
+          type: string
+          default: USD
+        notes:
+          type: string
+        trackingNumber:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderNumber
+        - customerId
+        - status
+        - items
+        - shippingAddress
+        - billingAddress
+        - total
+
+    OrderSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        itemCount:
+          type: integer
+          minimum: 0
+        total:
+          type: number
+          format: float
+          minimum: 0
+        currency:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderNumber
+        - status
+        - total
+        - createdAt
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        product:
+          $ref: '#/components/schemas/Product'
+        variantId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          format: float
+          minimum: 0
+        total:
+          type: number
+          format: float
+          minimum: 0
+        fulfillmentStatus:
+          type: string
+          enum: [pending, fulfilled, cancelled, refunded]
+      required:
+        - id
+        - productId
+        - quantity
+        - price
+        - total
+
+    OrderInput:
+      type: object
+      properties:
+        shippingAddressId:
+          type: string
+        billingAddressId:
+          type: string
+        shippingMethod:
+          type: string
+          enum: [standard, express, overnight]
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethodInput'
+        couponCode:
+          type: string
+        notes:
+          type: string
+      required:
+        - shippingAddressId
+        - billingAddressId
+        - shippingMethod
+        - paymentMethod
+
+    OrderStatus:
+      type: string
+      enum:
+        - pending
+        - confirmed
+        - processing
+        - shipped
+        - delivered
+        - cancelled
+        - refunded
+
+    PaymentInfo:
+      type: object
+      properties:
+        method:
+          type: string
+          enum: [credit_card, debit_card, paypal, apple_pay, google_pay, bank_transfer]
+        status:
+          type: string
+          enum: [pending, authorized, captured, failed, refunded]
+        transactionId:
+          type: string
+        last4:
+          type: string
+          description: Last 4 digits of card
+        cardBrand:
+          type: string
+          enum: [visa, mastercard, amex, discover]
+        paidAt:
+          type: string
+          format: date-time
+      required:
+        - method
+        - status
+
+    PaymentMethodInput:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [credit_card, debit_card, paypal, apple_pay, google_pay]
+        cardNumber:
+          type: string
+          description: Required for card payments
+        expiryMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+        expiryYear:
+          type: integer
+        cvv:
+          type: string
+        cardholderName:
+          type: string
+        saveForFuture:
+          type: boolean
+          default: false
+      required:
+        - type
+
+    ShippingInfo:
+      type: object
+      properties:
+        method:
+          type: string
+          enum: [standard, express, overnight]
+        carrier:
+          type: string
+        trackingNumber:
+          type: string
+        estimatedDelivery:
+          type: string
+          format: date
+        shippedAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time
+      required:
+        - method
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - code
+        - message
+        - timestamp
+
+    ValidationError:
+      type: object
+      properties:
+        code:
+          type: string
+          default: VALIDATION_ERROR
+        message:
+          type: string
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+              value:
+                type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - code
+        - message
+        - fields
+        - timestamp
+
+  parameters:
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      description: Product identifier
+      schema:
+        type: string
+        format: uuid
+
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      description: Customer identifier
+      schema:
+        type: string
+        format: uuid
+
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      description: Order identifier
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHORIZED
+            message: Authentication required
+            timestamp: '2024-01-01T12:00:00Z'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: FORBIDDEN
+            message: Insufficient permissions
+            timestamp: '2024-01-01T12:00:00Z'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: NOT_FOUND
+            message: Resource not found
+            timestamp: '2024-01-01T12:00:00Z'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INTERNAL_ERROR
+            message: An unexpected error occurred
+            timestamp: '2024-01-01T12:00:00Z'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

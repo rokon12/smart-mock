@@ -67,4 +67,10 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    @DeleteMapping("/spec")
+    public ResponseEntity<String> clearSpec() {
+        openApiIndex.clear();
+        return ResponseEntity.ok("OpenAPI spec cleared successfully");
+    }
 }

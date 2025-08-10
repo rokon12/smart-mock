@@ -86,11 +86,23 @@ async function loadSampleSpec() {
 // Clear current spec
 async function clearSpec() {
     if (confirm('Are you sure you want to clear the current specification?')) {
-        // Since we don't have a clear endpoint, we'll upload an empty spec
-        // Or you could add a clear endpoint to the backend
-        showNotification('Specification cleared. Please upload a new one.', 'info');
-        // For now, just reload to show the upload form
-        window.location.reload();
+        try {
+            const response = await fetch('/admin/spec', {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                showNotification('Specification cleared successfully', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                const error = await response.text();
+                showNotification(`Failed to clear specification: ${error}`, 'danger');
+            }
+        } catch (error) {
+            showNotification(`Error: ${error.message}`, 'danger');
+        }
     }
 }
 
