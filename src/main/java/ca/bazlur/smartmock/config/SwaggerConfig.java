@@ -2,7 +2,6 @@ package ca.bazlur.smartmock.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -14,16 +13,6 @@ public class SwaggerConfig implements WebMvcConfigurer {
         registry.addRedirectViewController("/api-docs", "/swagger-ui/index.html");
         registry.addRedirectViewController("/api-explorer", "/swagger-ui/index.html");
         registry.addRedirectViewController("/swagger-ui.html", "/swagger-ui/index.html");
-    }
-    
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/swagger-ui/**")
-                .addResourceLocations("classpath:/META-INF/resources/webjars/swagger-ui/")
-                .resourceChain(false);
-                
-        registry.addResourceHandler("/webjars/**")
-                .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
     
     @Override

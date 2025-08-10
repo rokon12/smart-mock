@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.models.media.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,9 +13,12 @@ import java.util.Map;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class JsonSchemaConverter {
   private final ObjectMapper mapper;
+  
+  public JsonSchemaConverter(@Qualifier("objectMapper") ObjectMapper mapper) {
+    this.mapper = mapper;
+  }
 
   public String convertToJsonSchema(Schema<?> openApiSchema) {
     try {
