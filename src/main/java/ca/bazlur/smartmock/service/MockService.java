@@ -74,6 +74,7 @@ public class MockService {
             Plan plan = planner.plan(endpoint, scenario, request, body);
             
             String jsonResponse = llmRunner.generateResponse(chatModel, plan);
+            log.debug("Generated response: {}", jsonResponse);
             
             try {
                 jsonResponse = validator.validate(jsonResponse);

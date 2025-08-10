@@ -26,7 +26,8 @@ public class MockController {
         
         try {
             MockResult result = mockService.generate(request, body != null ? body : "");
-            
+            log.debug("Mock response generated: {}", result);
+
             ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(result.getStatus());
             if (result.getHeaders() != null) {
                 result.getHeaders().forEach((key, values) -> 
@@ -35,7 +36,6 @@ public class MockController {
             
             log.debug("Mock response generated with status: {}", result.getStatus());
             return responseBuilder.body(result.getBody());
-            
         } catch (Exception e) {
             log.error("Error generating mock response", e);
             throw e;

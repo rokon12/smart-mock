@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,113 +21,165 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 public class OpenApiIndex {
+
+    // pattern -> (METHOD -> Endpoint)
     private final Map<String, Map<String, Endpoint>> endpoints = new ConcurrentHashMap<>();
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    
+
     @Getter
-    private OpenAPI openAPI;
-    
+    private volatile OpenAPI openAPI;
+
     @Getter
-    private String rawSpecContent;
+    private volatile String rawSpecContent;
 
     public void loadSpec(String specContent) {
         this.rawSpecContent = specContent;
-        this.openAPI = new OpenAPIV3Parser().readContents(specContent).getOpenAPI();
+        SwaggerParseResult result = new OpenAPIV3Parser().readContents(specContent);
+        if (result == null || result.getOpenAPI() == null) {
+            log.error("Failed to parse OpenAPI spec from raw content. Messages: {}", result != null ? result.getMessages() : "none");
+            this.openAPI = null;
+            endpoints.clear();
+            return;
+        }
+        this.openAPI = result.getOpenAPI();
         indexEndpoints();
     }
 
     public void loadSpecFromFile(String filePath) {
-        this.openAPI = new OpenAPIV3Parser().read(filePath);
-        // For file loading, we don't have raw content readily available
-        this.rawSpecContent = null;
+        SwaggerParseResult result = new OpenAPIV3Parser().readLocation(filePath, null, null);
+        if (result == null || result.getOpenAPI() == null) {
+            log.error("Failed to parse OpenAPI spec from file: {}. Messages: {}", filePath, result != null ? result.getMessages() : "none");
+            this.openAPI = null;
+            this.rawSpecContent = null;
+            endpoints.clear();
+            return;
+        }
+        this.openAPI = result.getOpenAPI();
+        this.rawSpecContent = null; // unknown
         indexEndpoints();
     }
 
     private void indexEndpoints() {
-        if (openAPI == null || openAPI.getPaths() == null) {
+        endpoints.clear();
+        if (openAPI == null || openAPI.getPaths() == null || openAPI.getPaths().isEmpty()) {
+            log.warn("No paths to index.");
             return;
         }
 
-        endpoints.clear();
-        
         openAPI.getPaths().forEach((path, pathItem) -> {
-            Map<String, Endpoint> methodMap = new HashMap<>();
-            
-            if (pathItem.getGet() != null) {
-                methodMap.put("GET", createEndpoint(path, "GET", pathItem.getGet()));
+            if (pathItem == null) return;
+            Map<String, Endpoint> methodMap = new LinkedHashMap<>();
+
+            putIfOp(methodMap, path, "GET", pathItem.getGet());
+            putIfOp(methodMap, path, "POST", pathItem.getPost());
+            putIfOp(methodMap, path, "PUT", pathItem.getPut());
+            putIfOp(methodMap, path, "DELETE", pathItem.getDelete());
+            putIfOp(methodMap, path, "PATCH", pathItem.getPatch());
+            putIfOp(methodMap, path, "HEAD", pathItem.getHead());
+            putIfOp(methodMap, path, "OPTIONS", pathItem.getOptions());
+            putIfOp(methodMap, path, "TRACE", pathItem.getTrace());
+
+            if (!methodMap.isEmpty()) {
+                endpoints.put(convertToAntPattern(path), methodMap);
             }
-            if (pathItem.getPost() != null) {
-                methodMap.put("POST", createEndpoint(path, "POST", pathItem.getPost()));
-            }
-            if (pathItem.getPut() != null) {
-                methodMap.put("PUT", createEndpoint(path, "PUT", pathItem.getPut()));
-            }
-            if (pathItem.getDelete() != null) {
-                methodMap.put("DELETE", createEndpoint(path, "DELETE", pathItem.getDelete()));
-            }
-            if (pathItem.getPatch() != null) {
-                methodMap.put("PATCH", createEndpoint(path, "PATCH", pathItem.getPatch()));
-            }
-            
-            endpoints.put(convertToAntPattern(path), methodMap);
         });
-        
-        log.info("Indexed {} endpoints from OpenAPI spec", endpoints.size());
+
+        log.info("Indexed {} path patterns from OpenAPI spec", endpoints.size());
     }
 
-    private Endpoint createEndpoint(String path, String method, Operation operation) {
-        return Endpoint.builder()
-                .path(path)
-                .method(method)
-                .operation(operation)
-                .parameters(operation.getParameters() != null ? operation.getParameters() : new ArrayList<>())
-                .responses(operation.getResponses())
-                .build();
+    private void putIfOp(Map<String, Endpoint> map, String path, String method, Operation op) {
+        if (op == null) return;
+        List<Parameter> params = op.getParameters() != null ? op.getParameters() : Collections.emptyList();
+        map.put(method, Endpoint.builder()
+            .path(path)
+            .method(method)
+            .operation(op)
+            .parameters(params)
+            .responses(op.getResponses())
+            .build());
     }
 
+    // `{id}` -> `*` (single segment). Keep the number of segments identical.
     private String convertToAntPattern(String openApiPath) {
-        return openApiPath.replaceAll("\\{([^}]+)\\}", "*");
+        if (openApiPath == null || openApiPath.isBlank()) return openApiPath;
+        return openApiPath.replaceAll("\\{[^/}]+}", "*");
     }
 
-    public Optional<Endpoint> match(String method, String path) {
-        for (Map.Entry<String, Map<String, Endpoint>> entry : endpoints.entrySet()) {
-            if (pathMatcher.match(entry.getKey(), path)) {
-                Map<String, Endpoint> methodMap = entry.getValue();
-                if (methodMap.containsKey(method.toUpperCase())) {
-                    return Optional.of(methodMap.get(method.toUpperCase()));
-                }
+    public Optional<Endpoint> match(String method, String requestPath) {
+        if (method == null || requestPath == null) return Optional.empty();
+        String normalizedMethod = method.toUpperCase(Locale.ROOT);
+
+        // Gather all matching patterns for this path
+        List<Map.Entry<String, Map<String, Endpoint>>> candidates = new ArrayList<>();
+        for (var e : endpoints.entrySet()) {
+            if (pathMatcher.match(e.getKey(), requestPath)) {
+                candidates.add(e);
             }
+        }
+        if (candidates.isEmpty()) return Optional.empty();
+
+        // Choose the most specific pattern
+        candidates.sort(Comparator.comparingInt((Map.Entry<String, Map<String, Endpoint>> e) -> specificityScore(e.getKey()))
+            .reversed());
+
+        for (var e : candidates) {
+            Endpoint ep = e.getValue().get(normalizedMethod);
+            if (ep != null) return Optional.of(ep);
         }
         return Optional.empty();
     }
 
+    // Higher score = more specific (longer, fewer wildcards)
+    private int specificityScore(String pattern) {
+        int length = pattern.length();
+        int wildcards = (int) pattern.chars().filter(ch -> ch == '*' || ch == '?').count();
+        return (length * 10) - (wildcards * 100); // weight wildcards heavily
+    }
+
     public Schema<?> getSchemaFromResponse(ApiResponse response) {
-        if (response.getContent() == null) {
-            return null;
-        }
-        
+        if (response == null) return null;
         Content content = response.getContent();
-        MediaType mediaType = content.get("application/json");
-        if (mediaType == null) {
-            mediaType = content.values().iterator().next();
+        if (content == null || content.isEmpty()) return null;
+
+        // Prefer application/json
+        MediaType mt = content.get("application/json");
+        if (mt != null) return mt.getSchema();
+
+        // Then any +json (e.g., application/merge-patch+json)
+        for (Map.Entry<String, MediaType> e : content.entrySet()) {
+            String key = e.getKey() != null ? e.getKey().toLowerCase(Locale.ROOT) : "";
+            if (key.endsWith("+json")) return e.getValue().getSchema();
         }
-        
-        return mediaType != null ? mediaType.getSchema() : null;
+
+        // Fallback to first
+        return content.values().iterator().next().getSchema();
     }
 
     public Schema<?> resolveSchema(Schema<?> schema) {
-        if (schema == null) {
-            return null;
+        return resolveSchema(schema, new HashSet<>());
+    }
+
+    private Schema<?> resolveSchema(Schema<?> schema, Set<String> seenRefs) {
+        if (schema == null) return null;
+
+        String ref = schema.get$ref();
+        if (ref == null || ref.isBlank()) return schema;
+
+        String name = ref.substring(ref.lastIndexOf('/') + 1);
+        if (openAPI == null || openAPI.getComponents() == null || openAPI.getComponents().getSchemas() == null) {
+            return schema; // cannot resolve
         }
-        
-        if (schema.get$ref() != null) {
-            String ref = schema.get$ref();
-            String schemaName = ref.substring(ref.lastIndexOf('/') + 1);
-            if (openAPI.getComponents() != null && openAPI.getComponents().getSchemas() != null) {
-                return openAPI.getComponents().getSchemas().get(schemaName);
-            }
+        if (!seenRefs.add(name)) {
+            log.warn("Cyclic $ref detected for schema: {}", name);
+            return schema;
         }
-        
-        return schema;
+
+        Schema<?> target = openAPI.getComponents().getSchemas().get(name);
+        if (target == null) {
+            log.warn("Missing component schema for $ref: {}", name);
+            return schema;
+        }
+        // Resolve recursively in case target itself is a $ref
+        return resolveSchema(target, seenRefs);
     }
 }

@@ -47,7 +47,6 @@ public class HomeController {
             model.addAttribute("endpointCount", endpointCount);
         }
         
-        // Add technology stack information from properties
         Map<String, String> techStack = new LinkedHashMap<>();
         var deps = appProperties.getDependencies();
         
