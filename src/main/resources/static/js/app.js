@@ -78,7 +78,6 @@ async function loadSampleSpec() {
     showUploadAlert('Loading sample specification...', 'info');
     
     try {
-        // First try the new schema endpoint
         const response = await fetch('/api/schemas/load-samples', {
             method: 'POST'
         });
@@ -90,43 +89,38 @@ async function loadSampleSpec() {
                 window.location.reload();
             }, 1500);
         } else {
-            // Fallback to old endpoint
-            const fallbackResponse = await fetch('/admin/spec/sample', {
-                method: 'POST'
-            });
-            
-            if (fallbackResponse.ok) {
-                showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                const error = await fallbackResponse.text();
-                showUploadAlert(`Failed to load sample: ${error}`, 'danger');
-            }
+            const error = await response.text();
+            showUploadAlert(`Failed to load sample: ${error}`, 'danger');
         }
     } catch (error) {
         showUploadAlert(`Error loading sample: ${error.message}`, 'danger');
     }
 }
 
-// Clear current spec
+// Clear all schemas
 async function clearSpec() {
-    if (confirm('Are you sure you want to clear the current specification?')) {
+    if (confirm('Are you sure you want to clear all schemas?')) {
         try {
-            const response = await fetch('/admin/spec', {
-                method: 'DELETE'
-            });
-            
-            if (response.ok) {
-                showNotification('Specification cleared successfully', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                const error = await response.text();
-                showNotification(`Failed to clear specification: ${error}`, 'danger');
+            // Get list of all schemas
+            const schemasResponse = await fetch('/api/schemas');
+            if (!schemasResponse.ok) {
+                showNotification('Failed to get schemas list', 'danger');
+                return;
             }
+            
+            const schemas = await schemasResponse.json();
+            
+            // Delete each schema
+            for (const schema of schemas) {
+                await fetch(`/api/schemas/${schema.id}`, {
+                    method: 'DELETE'
+                });
+            }
+            
+            showNotification('All schemas cleared successfully', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } catch (error) {
             showNotification(`Error: ${error.message}`, 'danger');
         }
@@ -142,7 +136,7 @@ async function viewSpec() {
     modal.show();
     
     try {
-        const response = await fetch('/admin/spec');
+        const response = await fetch('/api-spec');
         if (response.ok) {
             const spec = await response.json();
             const yamlContent = JSON.stringify(spec, null, 2);
@@ -163,7 +157,7 @@ async function viewSpec() {
 // Download specification
 async function downloadSpec() {
     try {
-        const response = await fetch('/admin/spec');
+        const response = await fetch('/api-spec');
         if (response.ok) {
             const spec = await response.json();
             const yamlContent = JSON.stringify(spec, null, 2);
@@ -293,23 +287,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Check OpenAPI spec status
+// Check schema status
 function checkSpecStatus() {
     // Only run if we're on the home page
     if (window.location.pathname !== '/') return;
     
-    // Check every 30 seconds if spec is not loaded
+    // Check every 30 seconds if no schema is active
     const specLoadedElement = document.querySelector('.alert-success');
     if (!specLoadedElement) {
         setTimeout(() => {
-            fetch('/admin/spec', { method: 'GET' })
+            fetch('/api/schemas')
                 .then(response => {
                     if (response.ok) {
-                        // Spec is now loaded, refresh the page
+                        return response.json();
+                    }
+                })
+                .then(schemas => {
+                    if (schemas && schemas.length > 0) {
+                        // Schemas are now loaded, refresh the page
                         window.location.reload();
                     }
                 })
-                .catch(err => console.log('Spec check failed:', err));
+                .catch(err => console.log('Schema check failed:', err));
             
             // Check again
             checkSpecStatus();

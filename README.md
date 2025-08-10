@@ -108,12 +108,13 @@ curl -H "X-Mock-Status: 201" http://localhost:8080/mock/pets
 
 ## API Endpoints
 
-### Admin
+### Schema Management
 
-* `POST /admin/spec` – Upload OpenAPI spec (YAML/JSON)
-* `POST /admin/spec/file?filePath=/path/to/spec.yaml` – Load spec from file
-* `POST /admin/spec/sample` – Load the sample Pet Store spec
-* `GET /admin/spec` – Retrieve current spec
+* `GET /api/schemas` – List all uploaded schemas
+* `POST /api/schemas?name={name}` – Upload OpenAPI spec (YAML/JSON)
+* `POST /api/schemas/{id}/activate` – Activate a specific schema
+* `DELETE /api/schemas/{id}` – Delete a schema
+* `POST /api/schemas/load-samples` – Load sample Pet Store schemas
 
 ### Mock
 
@@ -121,9 +122,9 @@ All OpenAPI-defined paths are available under `/mock/*`.
 
 ### Web UI
 
-* `GET /` – Home page with spec upload interface
+* `GET /` – Home page with schema management interface
 * `GET /swagger-ui.html` – Swagger UI for API exploration
-* `GET /api-spec` – OpenAPI spec for Swagger UI
+* `GET /api-spec?schemaId={id}` – OpenAPI spec for Swagger UI (optional schemaId parameter)
 
 ---
 

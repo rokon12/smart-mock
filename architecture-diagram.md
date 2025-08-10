@@ -55,7 +55,7 @@ graph TB
         subgraph "Web Layer"
             HomeController[Home Controller<br/>Upload & UI]
             MockController[Mock Controller<br/>Dynamic Endpoints]
-            AdminController[Admin Controller<br/>Spec Management]
+            SchemaController[Schema Controller<br/>Multi-Schema Management]
             ApiExplorer[API Explorer<br/>Swagger Integration]
         end
 
@@ -67,7 +67,7 @@ graph TB
         end
 
         subgraph "Data Layer"
-            OpenApiIndex[OpenAPI Index<br/>Endpoint Registry]
+            SchemaManager[Schema Manager<br/>Multi-Schema Registry]
             ResponseCache[Response Cache<br/>Caffeine]
             SpecStorage[Spec Storage<br/>In-Memory]
         end
@@ -87,10 +87,10 @@ graph TB
     SwaggerUI --> ApiExplorer
     APIClient --> MockController
     
-    HomeController --> SpecStorage
+    HomeController --> SchemaManager
     MockController --> MockService
-    AdminController --> OpenApiIndex
-    ApiExplorer --> OpenApiIndex
+    SchemaController --> SchemaManager
+    ApiExplorer --> SchemaManager
     
     MockService --> ResponsePlanner
     MockService --> ScenarioEngine
@@ -103,8 +103,8 @@ graph TB
     LangChain --> Ollama
     Ollama --> LLModel
     
-    OpenApiIndex --> SpecStorage
-    ValidationService --> OpenApiIndex
+    SchemaManager --> SpecStorage
+    ValidationService --> SchemaManager
 
     classDef client fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef web fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
@@ -114,9 +114,9 @@ graph TB
     classDef external fill:#f5f5f5,stroke:#424242,stroke-width:2px
 
     class Browser,SwaggerUI,APIClient client
-    class HomeController,MockController,AdminController,ApiExplorer web
+    class HomeController,MockController,SchemaController,ApiExplorer web
     class MockService,ResponsePlanner,ScenarioEngine,ValidationService service
-    class OpenApiIndex,ResponseCache,SpecStorage data
+    class SchemaManager,ResponseCache,SpecStorage data
     class LangChain,PromptBuilder ai
     class Ollama,LLModel external
 ```
@@ -127,7 +127,7 @@ graph TB
 sequenceDiagram
     participant Client
     participant MockController
-    participant OpenApiIndex
+    participant SchemaManager
     participant MockService
     participant ResponseCache
     participant ResponsePlanner
@@ -135,8 +135,8 @@ sequenceDiagram
     participant Ollama
 
     Client->>MockController: GET /mock/api/pets
-    MockController->>OpenApiIndex: match(GET, /api/pets)
-    OpenApiIndex-->>MockController: Endpoint metadata
+    MockController->>SchemaManager: getActiveIndex()
+    SchemaManager-->>MockController: OpenApiIndex
     
     MockController->>MockService: generate(endpoint, headers)
     

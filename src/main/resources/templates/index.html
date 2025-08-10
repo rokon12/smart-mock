@@ -300,7 +300,7 @@
                         <i class="bi bi-clipboard"></i> Copy
                     </button>
                     <pre class="mb-0"><code class="language-bash" id="quickstart-code"># 1. Upload your OpenAPI spec
-curl -X POST http://localhost:8080/admin/spec \
+curl -X POST http://localhost:8080/api/schemas?name=MyAPI \
   -H "Content-Type: application/yaml" \
   --data-binary @your-api-spec.yaml
 
@@ -314,25 +314,16 @@ curl -H "X-Mock-Scenario: server-error" \
             </div>
         </section>
 
-        <!-- Admin Endpoints -->
+        <!-- API Endpoints -->
         <section class="mb-5">
-            <h2 class="display-6 mb-4"><i class="bi bi-gear"></i> Admin Endpoints</h2>
+            <h2 class="display-6 mb-4"><i class="bi bi-gear"></i> API Endpoints</h2>
             <div class="list-group">
-                <div class="list-group-item">
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-success me-3">POST</span>
-                        <div>
-                            <code class="fs-6">/admin/spec</code>
-                            <p class="mb-0 text-muted small">Upload OpenAPI specification</p>
-                        </div>
-                    </div>
-                </div>
                 <div class="list-group-item">
                     <div class="d-flex align-items-center">
                         <span class="badge bg-primary me-3">GET</span>
                         <div>
-                            <code class="fs-6">/admin/spec</code>
-                            <p class="mb-0 text-muted small">View current specification</p>
+                            <code class="fs-6">/api/schemas</code>
+                            <p class="mb-0 text-muted small">List all uploaded schemas</p>
                         </div>
                     </div>
                 </div>
@@ -340,8 +331,35 @@ curl -H "X-Mock-Scenario: server-error" \
                     <div class="d-flex align-items-center">
                         <span class="badge bg-success me-3">POST</span>
                         <div>
-                            <code class="fs-6">/admin/spec/file?filePath={path}</code>
-                            <p class="mb-0 text-muted small">Load spec from file</p>
+                            <code class="fs-6">/api/schemas?name={name}</code>
+                            <p class="mb-0 text-muted small">Upload a new OpenAPI specification</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-3">POST</span>
+                        <div>
+                            <code class="fs-6">/api/schemas/{id}/activate</code>
+                            <p class="mb-0 text-muted small">Activate a specific schema</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-danger me-3">DELETE</span>
+                        <div>
+                            <code class="fs-6">/api/schemas/{id}</code>
+                            <p class="mb-0 text-muted small">Delete a schema</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-3">POST</span>
+                        <div>
+                            <code class="fs-6">/api/schemas/load-samples</code>
+                            <p class="mb-0 text-muted small">Load sample Pet Store schemas</p>
                         </div>
                     </div>
                 </div>
@@ -358,8 +376,8 @@ curl -H "X-Mock-Scenario: server-error" \
                     <div class="d-flex align-items-center">
                         <span class="badge bg-primary me-3">GET</span>
                         <div>
-                            <code class="fs-6">/api-spec</code>
-                            <p class="mb-0 text-muted small">Current OpenAPI spec in JSON format</p>
+                            <code class="fs-6">/api-spec?schemaId={id}</code>
+                            <p class="mb-0 text-muted small">Get OpenAPI spec in JSON format (optional schemaId parameter)</p>
                         </div>
                     </div>
                 </div>
