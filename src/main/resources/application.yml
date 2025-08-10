@@ -46,6 +46,12 @@ cache:
   max-size: ${CACHE_MAX_SIZE:1000}
   expire-minutes: ${CACHE_EXPIRE_MINUTES:15}
 
+# Storage Configuration
+smart-mock:
+  storage:
+    enabled: ${STORAGE_ENABLED:true}
+    path: ${STORAGE_PATH:${user.home}/.smart-mock/schemas}
+
 # Swagger UI Configuration
 springdoc:
   swagger-ui:

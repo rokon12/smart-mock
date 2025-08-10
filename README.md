@@ -7,6 +7,8 @@ An intelligent API mock server that uses **Ollama** and **LangChain4j** to gener
 ## Features
 
 * **Dynamic Mock Generation** – Automatically create responses matching your OpenAPI spec.
+* **Multi-Schema Support** – Load and switch between multiple API specifications.
+* **Persistent Storage** – Schemas are saved to disk and automatically restored on restart.
 * **Context-Aware Responses** – LLM-powered output that respects schema relationships and semantics.
 * **Multiple Scenarios** – Test happy paths, edge cases, validation errors, rate limits, and server errors.
 * **Deterministic Mode** – Seed-based generation for reproducible test results.
@@ -14,7 +16,7 @@ An intelligent API mock server that uses **Ollama** and **LangChain4j** to gener
 * **Latency Simulation** – Mimic real-world network delays.
 * **Schema Compliance** – JSON Schema validation for every generated response.
 * **Web UI** – Upload and explore OpenAPI specs with built-in Swagger UI.
-* **File Upload** – Support for both text and file-based spec uploads.
+* **Import/Export** – Export schemas to files or import multiple schemas at once.
 
 ---
 
@@ -115,6 +117,10 @@ curl -H "X-Mock-Status: 201" http://localhost:8080/mock/pets
 * `POST /api/schemas/{id}/activate` – Activate a specific schema
 * `DELETE /api/schemas/{id}` – Delete a schema
 * `POST /api/schemas/load-samples` – Load sample Pet Store schemas
+* `GET /api/schemas/{id}/export` – Export a schema to file
+* `POST /api/schemas/import` – Import multiple schema files
+* `POST /api/schemas/backup` – Manually backup all schemas
+* `POST /api/schemas/restore` – Restore schemas from backup
 
 ### Mock
 
@@ -138,6 +144,11 @@ ollama:
   model-name: codellama:7b
   temperature: 0.2
   timeout: 60
+
+smart-mock:
+  storage:
+    enabled: true
+    path: ${user.home}/.smart-mock/schemas
 
 cache:
   max-size: 1000
