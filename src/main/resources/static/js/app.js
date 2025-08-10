@@ -1,6 +1,3 @@
-// Smart Mock Server - JavaScript functionality
-
-// Handle spec file upload
 document.addEventListener('DOMContentLoaded', function() {
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {
@@ -8,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Upload OpenAPI specification
 async function handleSpecUpload(event) {
     event.preventDefault();
     
@@ -21,7 +17,6 @@ async function handleSpecUpload(event) {
         return;
     }
     
-    // Show loading state
     showUploadAlert('Uploading specification...', 'info');
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -32,10 +27,8 @@ async function handleSpecUpload(event) {
         const content = await file.text();
         const contentType = file.name.endsWith('.json') ? 'application/json' : 'application/yaml';
         
-        // Extract name from filename (remove extension)
         const name = file.name.replace(/\.(yaml|yml|json)$/i, '');
         
-        // Use the new schema API endpoint
         const response = await fetch(`/api/schemas?name=${encodeURIComponent(name)}`, {
             method: 'POST',
             headers: {
@@ -48,14 +41,11 @@ async function handleSpecUpload(event) {
             const result = await response.json();
             showUploadAlert(`Specification "${name}" uploaded successfully! Schema ID: ${result.id}`, 'success');
             
-            // Clear the file input
             fileInput.value = '';
             
-            // Reset button
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
             
-            // Reload after a short delay
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
@@ -72,7 +62,6 @@ async function handleSpecUpload(event) {
     }
 }
 
-// Load sample Pet Store spec
 async function loadSampleSpec() {
     const alertDiv = document.getElementById('uploadAlert');
     showUploadAlert('Loading sample specification...', 'info');
@@ -97,11 +86,9 @@ async function loadSampleSpec() {
     }
 }
 
-// Clear all schemas
 async function clearSpec() {
     if (confirm('Are you sure you want to clear all schemas?')) {
         try {
-            // Get list of all schemas
             const schemasResponse = await fetch('/api/schemas');
             if (!schemasResponse.ok) {
                 showNotification('Failed to get schemas list', 'danger');
@@ -110,7 +97,6 @@ async function clearSpec() {
             
             const schemas = await schemasResponse.json();
             
-            // Delete each schema
             for (const schema of schemas) {
                 await fetch(`/api/schemas/${schema.id}`, {
                     method: 'DELETE'
@@ -127,7 +113,6 @@ async function clearSpec() {
     }
 }
 
-// View full specification
 async function viewSpec() {
     const modal = new bootstrap.Modal(document.getElementById('specModal'));
     const specContent = document.getElementById('specContent');
@@ -142,7 +127,6 @@ async function viewSpec() {
             const yamlContent = JSON.stringify(spec, null, 2);
             specContent.textContent = yamlContent;
             
-            // Re-highlight syntax
             if (window.Prism) {
                 Prism.highlightElement(specContent);
             }
@@ -154,7 +138,6 @@ async function viewSpec() {
     }
 }
 
-// Download specification
 async function downloadSpec() {
     try {
         const response = await fetch('/api-spec');
@@ -162,7 +145,6 @@ async function downloadSpec() {
             const spec = await response.json();
             const yamlContent = JSON.stringify(spec, null, 2);
             
-            // Create blob and download
             const blob = new Blob([yamlContent], { type: 'application/json' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -180,7 +162,6 @@ async function downloadSpec() {
     }
 }
 
-// Copy specification to clipboard
 function copySpec() {
     const specContent = document.getElementById('specContent');
     const text = specContent.textContent;
@@ -192,7 +173,6 @@ function copySpec() {
     });
 }
 
-// Show upload alert
 function showUploadAlert(message, type) {
     const alertDiv = document.getElementById('uploadAlert');
     if (alertDiv) {
@@ -202,24 +182,19 @@ function showUploadAlert(message, type) {
     }
 }
 
-// Copy code to clipboard
 function copyCode(elementId) {
     const codeElement = document.getElementById(elementId);
     const button = event.target.closest('button');
     
     if (!codeElement) return;
     
-    // Get the text content
     const text = codeElement.textContent || codeElement.innerText;
     
-    // Copy to clipboard
     navigator.clipboard.writeText(text).then(() => {
-        // Update button text and style
         const originalHTML = button.innerHTML;
         button.innerHTML = '<i class="bi bi-check"></i> Copied!';
         button.classList.add('copied');
         
-        // Reset after 2 seconds
         setTimeout(() => {
             button.innerHTML = originalHTML;
             button.classList.remove('copied');
@@ -230,15 +205,12 @@ function copyCode(elementId) {
     });
 }
 
-// Initialize tooltips
 document.addEventListener('DOMContentLoaded', function() {
-    // Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
-    // Event delegation for schema management buttons
     document.addEventListener('click', function(e) {
         if (e.target.closest('.btn-activate-schema')) {
             const btn = e.target.closest('.btn-activate-schema');
@@ -259,7 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Add smooth scroll behavior for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -273,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add interactive hover effects to cards
     const cards = document.querySelectorAll('.feature-card, .tech-item');
     cards.forEach(card => {
         card.addEventListener('mouseenter', function() {
@@ -281,18 +251,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Auto-refresh spec status (optional)
     if (window.location.pathname === '/') {
         checkSpecStatus();
     }
 });
 
-// Check schema status
 function checkSpecStatus() {
-    // Only run if we're on the home page
     if (window.location.pathname !== '/') return;
-    
-    // Check every 30 seconds if no schema is active
     const specLoadedElement = document.querySelector('.alert-success');
     if (!specLoadedElement) {
         setTimeout(() => {
@@ -304,19 +269,16 @@ function checkSpecStatus() {
                 })
                 .then(schemas => {
                     if (schemas && schemas.length > 0) {
-                        // Schemas are now loaded, refresh the page
                         window.location.reload();
                     }
                 })
                 .catch(err => console.log('Schema check failed:', err));
             
-            // Check again
             checkSpecStatus();
-        }, 30000); // 30 seconds
+        }, 30000);
     }
 }
 
-// Format JSON response (utility function)
 function formatJSON(jsonString) {
     try {
         const obj = JSON.parse(jsonString);
@@ -326,7 +288,6 @@ function formatJSON(jsonString) {
     }
 }
 
-// Add a simple API tester (optional enhancement)
 function testEndpoint(method, path, headers = {}, body = null) {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/mock${path}`;
@@ -355,7 +316,6 @@ function testEndpoint(method, path, headers = {}, body = null) {
         });
 }
 
-// Utility: Display notification
 function showNotification(message, type = 'info') {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
@@ -367,13 +327,11 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(alertDiv);
     
-    // Auto-dismiss after 5 seconds
     setTimeout(() => {
         alertDiv.remove();
     }, 5000);
 }
 
-// Schema management functions
 async function activateSchema(schemaId) {
     try {
         const response = await fetch(`/api/schemas/${schemaId}/activate`, {
@@ -432,7 +390,6 @@ async function loadSampleSchemas() {
     }
 }
 
-// Export functions for global use
 window.smartMock = {
     copyCode,
     testEndpoint,

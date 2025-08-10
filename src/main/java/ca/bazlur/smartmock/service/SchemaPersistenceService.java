@@ -14,9 +14,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * Service that coordinates persistence between SchemaManager and SchemaStorageService
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,9 +23,6 @@ public class SchemaPersistenceService {
     private final SchemaManager schemaManager;
     private final SchemaStorageService storageService;
     
-    /**
-     * Load schemas when application is ready
-     */
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         loadSchemas();
@@ -36,27 +30,18 @@ public class SchemaPersistenceService {
     
     @PreDestroy
     public void shutdown() {
-        // Save all schemas before shutdown
         saveAllSchemas();
     }
     
-    /**
-     * Periodically save schemas (every 5 minutes)
-     */
     @Scheduled(fixedDelayString = "300000", initialDelayString = "60000")
     public void periodicSave() {
         saveAllSchemas();
     }
     
-    /**
-     * Save all schemas to disk
-     */
     public void saveAllSchemas() {
         try {
-            // First clear all existing schema files
             storageService.clearAllSchemas();
             
-            // Save each schema
             for (SchemaManager.SchemaInfo schema : schemaManager.getAllSchemas()) {
                 boolean isActive = schemaManager.getActiveSchema()
                     .map(s -> s.getId().equals(schema.getId()))
@@ -79,9 +64,6 @@ public class SchemaPersistenceService {
         }
     }
     
-    /**
-     * Load all schemas from disk
-     */
     public void loadSchemas() {
         try {
             var storedSchemas = storageService.loadAllSchemas();
@@ -94,7 +76,6 @@ public class SchemaPersistenceService {
             String activeSchemaId = null;
             int loadedCount = 0;
             
-            // Load each schema
             for (var stored : storedSchemas) {
                 try {
                     String newId = schemaManager.addSchema(
@@ -114,7 +95,6 @@ public class SchemaPersistenceService {
                 }
             }
             
-            // Restore active schema
             if (activeSchemaId != null) {
                 schemaManager.setActiveSchema(activeSchemaId);
                 log.info("Restored active schema: {}", activeSchemaId);
@@ -127,17 +107,11 @@ public class SchemaPersistenceService {
         }
     }
     
-    /**
-     * Delete persisted schema file
-     */
     public void deletePersistedSchema(String schemaId) {
         storageService.deleteSchema(schemaId);
-        saveAllSchemas(); // Update all schemas after deletion
+        saveAllSchemas();
     }
     
-    /**
-     * Export a schema to a specific location
-     */
     public void exportSchema(String schemaId, Path targetPath) throws IOException {
         SchemaManager.SchemaInfo schema = schemaManager.getSchema(schemaId)
             .orElseThrow(() -> new IllegalArgumentException("Schema not found: " + schemaId));
@@ -147,9 +121,6 @@ public class SchemaPersistenceService {
         log.info("Exported schema '{}' to {}", schema.getName(), targetPath);
     }
     
-    /**
-     * Import schemas from a directory
-     */
     public int importSchemas(Path sourceDir) throws IOException {
         if (!java.nio.file.Files.exists(sourceDir) || !java.nio.file.Files.isDirectory(sourceDir)) {
             throw new IllegalArgumentException("Invalid source directory: " + sourceDir);

@@ -19,10 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Simple storage service that persists schemas to disk
- * without creating circular dependencies
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -64,9 +60,6 @@ public class SchemaStorageService {
         }
     }
     
-    /**
-     * Save a schema to disk
-     */
     public void saveSchema(String id, String name, String description, String specContent, 
                           LocalDateTime uploadedAt, boolean isActive) {
         if (!storageEnabled) {
@@ -93,9 +86,6 @@ public class SchemaStorageService {
         }
     }
     
-    /**
-     * Load all schemas from disk
-     */
     public List<StoredSchema> loadAllSchemas() {
         List<StoredSchema> schemas = new ArrayList<>();
         
@@ -134,9 +124,6 @@ public class SchemaStorageService {
         return schemas;
     }
     
-    /**
-     * Delete a schema file from disk
-     */
     public void deleteSchema(String schemaId) {
         if (!storageEnabled) {
             return;
@@ -156,9 +143,6 @@ public class SchemaStorageService {
         }
     }
     
-    /**
-     * Clear all stored schemas
-     */
     public void clearAllSchemas() {
         if (!storageEnabled) {
             return;

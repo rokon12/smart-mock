@@ -31,7 +31,6 @@ public class SchemaManager {
             this.index = index;
             this.uploadedAt = LocalDateTime.now();
             
-            // Extract metadata from OpenAPI
             if (index.getOpenAPI() != null) {
                 OpenAPI api = index.getOpenAPI();
                 this.version = api.getInfo() != null ? api.getInfo().getVersion() : "1.0.0";
@@ -46,9 +45,6 @@ public class SchemaManager {
     private final Map<String, SchemaInfo> schemas = new ConcurrentHashMap<>();
     private volatile String activeSchemaId;
     
-    /**
-     * Add a new schema to the manager
-     */
     public String addSchema(String specContent, String name) {
         String id = generateSchemaId(name);
         
@@ -59,7 +55,6 @@ public class SchemaManager {
             throw new IllegalArgumentException("Invalid OpenAPI specification");
         }
         
-        // Extract name and description from spec if not provided
         if (name == null && index.getOpenAPI().getInfo() != null) {
             name = index.getOpenAPI().getInfo().getTitle();
         }
@@ -75,7 +70,6 @@ public class SchemaManager {
         SchemaInfo schemaInfo = new SchemaInfo(id, name, description, index);
         schemas.put(id, schemaInfo);
         
-        // If this is the first schema or no active schema, make it active
         if (activeSchemaId == null || schemas.size() == 1) {
             activeSchemaId = id;
         }
@@ -84,23 +78,14 @@ public class SchemaManager {
         return id;
     }
     
-    /**
-     * Get all schemas
-     */
     public Collection<SchemaInfo> getAllSchemas() {
         return new ArrayList<>(schemas.values());
     }
     
-    /**
-     * Get a specific schema
-     */
     public Optional<SchemaInfo> getSchema(String id) {
         return Optional.ofNullable(schemas.get(id));
     }
     
-    /**
-     * Get the active schema
-     */
     public Optional<SchemaInfo> getActiveSchema() {
         if (activeSchemaId == null) {
             return Optional.empty();
@@ -108,9 +93,6 @@ public class SchemaManager {
         return Optional.ofNullable(schemas.get(activeSchemaId));
     }
     
-    /**
-     * Set the active schema
-     */
     public boolean setActiveSchema(String id) {
         if (!schemas.containsKey(id)) {
             log.warn("Attempted to set non-existent schema '{}' as active", id);
@@ -122,13 +104,9 @@ public class SchemaManager {
         return true;
     }
     
-    /**
-     * Delete a schema
-     */
     public boolean deleteSchema(String id) {
         SchemaInfo removed = schemas.remove(id);
         if (removed != null) {
-            // If we deleted the active schema, pick another one
             if (id.equals(activeSchemaId)) {
                 if (!schemas.isEmpty()) {
                     activeSchemaId = schemas.keySet().iterator().next();
@@ -144,33 +122,21 @@ public class SchemaManager {
         return false;
     }
     
-    /**
-     * Clear all schemas
-     */
     public void clearAll() {
         schemas.clear();
         activeSchemaId = null;
         log.info("Cleared all schemas");
     }
     
-    /**
-     * Get the active OpenAPI index for mock operations
-     */
     public Optional<OpenApiIndex> getActiveIndex() {
         return getActiveSchema().map(SchemaInfo::getIndex);
     }
     
-    /**
-     * Check if a schema name already exists
-     */
     public boolean schemaNameExists(String name) {
         return schemas.values().stream()
             .anyMatch(s -> s.getName().equalsIgnoreCase(name));
     }
     
-    /**
-     * Update a schema
-     */
     public boolean updateSchema(String id, String specContent) {
         SchemaInfo existing = schemas.get(id);
         if (existing == null) {
@@ -184,7 +150,6 @@ public class SchemaManager {
             throw new IllegalArgumentException("Invalid OpenAPI specification");
         }
         
-        // Create updated schema info preserving the name
         SchemaInfo updated = new SchemaInfo(id, existing.getName(), 
             newIndex.getOpenAPI().getInfo() != null ? newIndex.getOpenAPI().getInfo().getDescription() : null,
             newIndex);
