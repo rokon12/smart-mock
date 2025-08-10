@@ -1,7 +1,7 @@
 package ca.bazlur.smartmock.controller;
 
 import ca.bazlur.smartmock.config.AppProperties;
-import ca.bazlur.smartmock.openapi.OpenApiIndex;
+import ca.bazlur.smartmock.service.SchemaManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -14,7 +14,7 @@ import java.util.Map;
 @Controller
 @RequiredArgsConstructor
 public class HomeController {
-    private final OpenApiIndex openApiIndex;
+    private final SchemaManager schemaManager;
     private final AppProperties appProperties;
     
     @Value("${ollama.model-name:codellama:7b}")
@@ -22,12 +22,15 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model) {
-        boolean specLoaded = openApiIndex.getOpenAPI() != null;
+        var schemas = schemaManager.getAllSchemas();
+        var activeSchema = schemaManager.getActiveSchema().orElse(null);
         
-        model.addAttribute("specLoaded", specLoaded);
+        model.addAttribute("schemas", schemas);
+        model.addAttribute("activeSchema", activeSchema);
+        model.addAttribute("specLoaded", activeSchema != null);
         
-        if (specLoaded) {
-            var openApi = openApiIndex.getOpenAPI();
+        if (activeSchema != null) {
+            var openApi = activeSchema.getIndex().getOpenAPI();
             var info = openApi.getInfo();
             
             model.addAttribute("specTitle", info != null ? info.getTitle() : "Untitled API");

@@ -32,7 +32,11 @@ async function handleSpecUpload(event) {
         const content = await file.text();
         const contentType = file.name.endsWith('.json') ? 'application/json' : 'application/yaml';
         
-        const response = await fetch('/admin/spec', {
+        // Extract name from filename (remove extension)
+        const name = file.name.replace(/\.(yaml|yml|json)$/i, '');
+        
+        // Use the new schema API endpoint
+        const response = await fetch(`/api/schemas?name=${encodeURIComponent(name)}`, {
             method: 'POST',
             headers: {
                 'Content-Type': contentType
@@ -41,10 +45,20 @@ async function handleSpecUpload(event) {
         });
         
         if (response.ok) {
-            showUploadAlert('Specification uploaded successfully! Reloading...', 'success');
+            const result = await response.json();
+            showUploadAlert(`Specification "${name}" uploaded successfully! Schema ID: ${result.id}`, 'success');
+            
+            // Clear the file input
+            fileInput.value = '';
+            
+            // Reset button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            
+            // Reload after a short delay
             setTimeout(() => {
                 window.location.reload();
-            }, 1500);
+            }, 2000);
         } else {
             const error = await response.text();
             showUploadAlert(`Upload failed: ${error}`, 'danger');
@@ -64,19 +78,32 @@ async function loadSampleSpec() {
     showUploadAlert('Loading sample specification...', 'info');
     
     try {
-        // Load the sample spec using the dedicated endpoint
-        const response = await fetch('/admin/spec/sample', {
+        // First try the new schema endpoint
+        const response = await fetch('/api/schemas/load-samples', {
             method: 'POST'
         });
         
         if (response.ok) {
-            showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
+            const result = await response.json();
+            showUploadAlert(`Sample specification loaded successfully! Loaded ${result.loaded} schema(s). Reloading...`, 'success');
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
         } else {
-            const error = await response.text();
-            showUploadAlert(`Failed to load sample: ${error}`, 'danger');
+            // Fallback to old endpoint
+            const fallbackResponse = await fetch('/admin/spec/sample', {
+                method: 'POST'
+            });
+            
+            if (fallbackResponse.ok) {
+                showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                const error = await fallbackResponse.text();
+                showUploadAlert(`Failed to load sample: ${error}`, 'danger');
+            }
         }
     } catch (error) {
         showUploadAlert(`Error loading sample: ${error.message}`, 'danger');
@@ -217,6 +244,27 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
+    // Event delegation for schema management buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-activate-schema')) {
+            const btn = e.target.closest('.btn-activate-schema');
+            const schemaId = btn.dataset.schemaId;
+            activateSchema(schemaId);
+        }
+        
+        if (e.target.closest('.btn-explore-schema')) {
+            const btn = e.target.closest('.btn-explore-schema');
+            const schemaId = btn.dataset.schemaId;
+            exploreSchema(schemaId);
+        }
+        
+        if (e.target.closest('.btn-delete-schema')) {
+            const btn = e.target.closest('.btn-delete-schema');
+            const schemaId = btn.dataset.schemaId;
+            deleteSchema(schemaId);
+        }
+    });
+    
     // Add smooth scroll behavior for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -326,10 +374,73 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
+// Schema management functions
+async function activateSchema(schemaId) {
+    try {
+        const response = await fetch(`/api/schemas/${schemaId}/activate`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            showNotification('Schema activated successfully', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showNotification('Failed to activate schema', 'danger');
+        }
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'danger');
+    }
+}
+
+async function deleteSchema(schemaId) {
+    if (confirm('Are you sure you want to delete this schema?')) {
+        try {
+            const response = await fetch(`/api/schemas/${schemaId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                showNotification('Schema deleted successfully', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showNotification('Failed to delete schema', 'danger');
+            }
+        } catch (error) {
+            showNotification(`Error: ${error.message}`, 'danger');
+        }
+    }
+}
+
+function exploreSchema(schemaId) {
+    window.open(`/swagger-ui.html?schemaId=${schemaId}`, '_blank');
+}
+
+async function loadSampleSchemas() {
+    try {
+        const response = await fetch('/api/schemas/load-samples', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showNotification(`Loaded ${result.loaded} sample schemas`, 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showNotification('Failed to load sample schemas', 'danger');
+        }
+    } catch (error) {
+        showNotification(`Error: ${error.message}`, 'danger');
+    }
+}
+
 // Export functions for global use
 window.smartMock = {
     copyCode,
     testEndpoint,
     formatJSON,
-    showNotification
+    showNotification,
+    activateSchema,
+    deleteSchema,
+    exploreSchema,
+    loadSampleSchemas
 };

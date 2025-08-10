@@ -1,6 +1,6 @@
 package ca.bazlur.smartmock.controller;
 
-import ca.bazlur.smartmock.openapi.OpenApiIndex;
+import ca.bazlur.smartmock.service.SchemaManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.swagger.v3.core.util.Json;
@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ApiExplorerController {
     
-    private final OpenApiIndex openApiIndex;
+    private final SchemaManager schemaManager;
     private final ObjectMapper objectMapper;
     
     @GetMapping("/explorer")
@@ -34,8 +35,29 @@ public class ApiExplorerController {
     
     @GetMapping(value = "/api-spec", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<String> getApiSpec(HttpServletRequest request) {
+    public ResponseEntity<String> getApiSpec(
+            HttpServletRequest request,
+            @RequestParam(required = false) String schemaId) {
         try {
+            // Get the schema to use (either specified or active)
+            var schemaInfo = schemaId != null ? 
+                schemaManager.getSchema(schemaId).orElse(null) :
+                schemaManager.getActiveSchema().orElse(null);
+                
+            if (schemaInfo == null) {
+                Map<String, Object> defaultSpec = new HashMap<>();
+                defaultSpec.put("openapi", "3.0.0");
+                defaultSpec.put("info", Map.of(
+                    "title", "No Schema Loaded",
+                    "version", "1.0.0",
+                    "description", "Please upload an OpenAPI specification"
+                ));
+                defaultSpec.put("paths", new HashMap<>());
+                return ResponseEntity.ok(objectMapper.writeValueAsString(defaultSpec));
+            }
+            
+            var openApiIndex = schemaInfo.getIndex();
+            
             String scheme = request.getScheme();
             String serverName = request.getServerName();
             int serverPort = request.getServerPort();

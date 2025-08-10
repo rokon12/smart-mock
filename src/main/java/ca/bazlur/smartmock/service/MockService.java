@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class MockService {
-    private final OpenApiIndex openApiIndex;
+    private final SchemaManager schemaManager;
     private final LanguageModel chatModel;
     private final ResponsePlanner planner;
     private final LlmRunner llmRunner;
@@ -34,13 +34,13 @@ public class MockService {
     private final ResponsePostProcessor postProcessor;
     private final Cache<Signature, MockResult> cache;
 
-    public MockService(OpenApiIndex openApiIndex,
+    public MockService(SchemaManager schemaManager,
                        LanguageModel chatModel,
                        ResponsePlanner planner,
                        LlmRunner llmRunner,
                        JsonValidator validator,
                        ResponsePostProcessor postProcessor) {
-        this.openApiIndex = openApiIndex;
+        this.schemaManager = schemaManager;
         this.chatModel = chatModel;
         this.planner = planner;
         this.llmRunner = llmRunner;
@@ -55,6 +55,11 @@ public class MockService {
     public MockResult generate(HttpServletRequest request, String body) {
         String path = request.getRequestURI().replace("/mock", "");
         String method = request.getMethod();
+        
+        // Get the active schema's index
+        OpenApiIndex openApiIndex = schemaManager.getActiveIndex()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                        "No active schema available. Please upload and activate an OpenAPI specification."));
         
         Signature signature = Signature.from(request, body);
         

@@ -23,23 +23,78 @@
             </h1>
             <p class="lead fs-4 mb-4">AI-Powered API Mocking with OpenAPI</p>
             
-            <div th:if="${specLoaded}" class="alert alert-success d-inline-block">
+            <div th:if="${activeSchema != null}" class="alert alert-success d-inline-block">
                 <i class="bi bi-check-circle-fill"></i>
-                OpenAPI spec loaded: <strong th:text="${specTitle}">API</strong>
+                Active Schema: <strong th:text="${activeSchema.name}">API</strong>
+                <span class="badge bg-light text-dark ms-2" th:text="${schemas.size() + ' schema(s) loaded'}">0 schemas</span>
             </div>
-            <div th:unless="${specLoaded}" class="alert alert-warning d-inline-block">
+            <div th:unless="${activeSchema != null}" class="alert alert-warning d-inline-block">
                 <i class="bi bi-exclamation-triangle-fill"></i>
-                No OpenAPI spec loaded yet
+                <span th:if="${!schemas.isEmpty()}" th:text="${schemas.size() + ' schema(s) loaded but none active'}">No active schema</span>
+                <span th:if="${schemas.isEmpty()}">No schemas loaded yet</span>
             </div>
         </div>
     </section>
 
     <!-- Main Content -->
     <div class="container py-5">
+        <!-- Schema Management Section -->
+        <div th:if="${!schemas.isEmpty()}" class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-layers"></i> Loaded Schemas</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Version</th>
+                                <th>Endpoints</th>
+                                <th>Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="schema : ${schemas}" th:classappend="${schema.id == activeSchema?.id} ? 'table-success' : ''">
+                                <td>
+                                    <strong th:text="${schema.name}">Schema Name</strong>
+                                    <span th:if="${schema.id == activeSchema?.id}" class="badge bg-success ms-2">Active</span>
+                                </td>
+                                <td th:text="${schema.version}">1.0.0</td>
+                                <td><span class="badge bg-info" th:text="${schema.endpointCount}">0</span></td>
+                                <td th:text="${#temporals.format(schema.uploadedAt, 'MMM dd, HH:mm')}">Jan 01, 12:00</td>
+                                <td>
+                                    <button th:unless="${schema.id == activeSchema?.id}" 
+                                            class="btn btn-sm btn-success btn-activate-schema" 
+                                            th:data-schema-id="${schema.id}">
+                                        <i class="bi bi-check-circle"></i> Activate
+                                    </button>
+                                    <button class="btn btn-sm btn-primary btn-explore-schema" 
+                                            th:data-schema-id="${schema.id}">
+                                        <i class="bi bi-box-arrow-up-right"></i> Explore
+                                    </button>
+                                    <button class="btn btn-sm btn-danger btn-delete-schema" 
+                                            th:data-schema-id="${schema.id}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-secondary" onclick="loadSampleSchemas()">
+                        <i class="bi bi-collection"></i> Load All Sample Schemas
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <!-- Upload Section -->
-        <div th:unless="${specLoaded}" class="card mb-5 border-warning">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0"><i class="bi bi-upload"></i> Upload OpenAPI Specification</h5>
+        <div class="card mb-5 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-upload"></i> Upload New OpenAPI Specification</h5>
             </div>
             <div class="card-body">
                 <form id="uploadForm">
@@ -61,12 +116,12 @@
             </div>
         </div>
 
-        <!-- Spec Details -->
-        <div th:if="${specLoaded}" class="card mb-5 border-success">
+        <!-- Active Schema Details -->
+        <div th:if="${activeSchema != null}" class="card mb-5 border-success">
             <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-file-code"></i> Loaded Specification Details</h5>
+                <h5 class="mb-0"><i class="bi bi-file-code"></i> Active Schema Details</h5>
                 <button class="btn btn-sm btn-light" onclick="clearSpec()">
-                    <i class="bi bi-x-circle"></i> Clear Spec
+                    <i class="bi bi-x-circle"></i> Clear All
                 </button>
             </div>
             <div class="card-body">
