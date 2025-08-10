@@ -23,7 +23,7 @@ public class LangChainConfig {
   @Value("${ollama.temperature:0.2}")
   private Double temperature;
 
-  @Value("${ollama.timeout:60}")
+  @Value("${ollama.timeout:300}")
   private Integer timeoutSeconds;
 
   @Bean

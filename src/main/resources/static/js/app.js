@@ -64,45 +64,19 @@ async function loadSampleSpec() {
     showUploadAlert('Loading sample specification...', 'info');
     
     try {
-        // First, try to load the sample spec from resources
-        const response = await fetch('/sample-petstore.yaml');
-        let specContent;
+        // Load the sample spec using the dedicated endpoint
+        const response = await fetch('/admin/spec/sample', {
+            method: 'POST'
+        });
         
         if (response.ok) {
-            specContent = await response.text();
+            showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } else {
-            // Fallback: load from file path
-            const fileResponse = await fetch('/admin/spec/file?filePath=src/main/resources/sample-petstore.yaml', {
-                method: 'POST'
-            });
-            
-            if (fileResponse.ok) {
-                showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-                return;
-            }
-        }
-        
-        // Upload the spec content
-        if (specContent) {
-            const uploadResponse = await fetch('/admin/spec', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/yaml'
-                },
-                body: specContent
-            });
-            
-            if (uploadResponse.ok) {
-                showUploadAlert('Sample specification loaded successfully! Reloading...', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                showUploadAlert('Failed to load sample specification', 'danger');
-            }
+            const error = await response.text();
+            showUploadAlert(`Failed to load sample: ${error}`, 'danger');
         }
     } catch (error) {
         showUploadAlert(`Error loading sample: ${error.message}`, 'danger');

@@ -13,6 +13,8 @@ An intelligent API mock server that uses **Ollama** and **LangChain4j** to gener
 * **Response Caching** – High-performance caching for faster subsequent calls.
 * **Latency Simulation** – Mimic real-world network delays.
 * **Schema Compliance** – JSON Schema validation for every generated response.
+* **Web UI** – Upload and explore OpenAPI specs with built-in Swagger UI.
+* **File Upload** – Support for both text and file-based spec uploads.
 
 ---
 
@@ -20,50 +22,11 @@ An intelligent API mock server that uses **Ollama** and **LangChain4j** to gener
 
 ### Prerequisites
 
-* Java 21+
-* Docker & Docker Compose
-* Maven
+* Java 17+
+* Maven 3.6+
+* Ollama (for LLM support)
 
-### Run with Docker Compose
-
-1. **Build the application**
-
-   ```bash
-   mvn clean package
-   ```
-
-2. **Start services**
-
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **Initialize Ollama models**
-
-   ```bash
-   chmod +x init-ollama.sh
-   ./init-ollama.sh
-   ```
-
-4. **Load an OpenAPI spec**
-
-   ```bash
-   curl -X POST http://localhost:8080/admin/spec \
-     -H "Content-Type: application/yaml" \
-     --data-binary @src/main/resources/sample-petstore.yaml
-   ```
-
-5. **Test mock endpoints**
-
-   ```bash
-   curl http://localhost:8080/mock/pets
-   curl http://localhost:8080/mock/pets/123
-   curl -X POST http://localhost:8080/mock/pets \
-     -H "Content-Type: application/json" \
-     -d '{"name": "Fluffy", "category": "cat"}'
-   ```
-
-### Run Locally (without Docker)
+### Run Locally
 
 1. **Install and start Ollama**
 
@@ -72,9 +35,12 @@ An intelligent API mock server that uses **Ollama** and **LangChain4j** to gener
    brew install ollama
    ollama serve
 
-   # Pull required models
+   # Linux (using install script)
+   curl -fsSL https://ollama.ai/install.sh | sh
+   ollama serve
+
+   # Pull required model
    ollama pull codellama:7b
-   ollama pull mistral-nemo
    ```
 
 2. **Start Smart Mock**
@@ -82,6 +48,13 @@ An intelligent API mock server that uses **Ollama** and **LangChain4j** to gener
    ```bash
    mvn spring-boot:run
    ```
+
+3. **Access the Web UI**
+
+   Open http://localhost:8080 in your browser to:
+   - Upload OpenAPI specifications
+   - Load sample Pet Store spec
+   - Explore APIs with Swagger UI
 
 ---
 
@@ -139,11 +112,18 @@ curl -H "X-Mock-Status: 201" http://localhost:8080/mock/pets
 
 * `POST /admin/spec` – Upload OpenAPI spec (YAML/JSON)
 * `POST /admin/spec/file?filePath=/path/to/spec.yaml` – Load spec from file
+* `POST /admin/spec/sample` – Load the sample Pet Store spec
 * `GET /admin/spec` – Retrieve current spec
 
 ### Mock
 
 All OpenAPI-defined paths are available under `/mock/*`.
+
+### Web UI
+
+* `GET /` – Home page with spec upload interface
+* `GET /swagger-ui.html` – Swagger UI for API exploration
+* `GET /api-spec` – OpenAPI spec for Swagger UI
 
 ---
 
@@ -154,7 +134,7 @@ Configure via environment variables or `application.yml`:
 ```yaml
 ollama:
   base-url: http://localhost:11434
-  model-name: llama3.1:8b
+  model-name: codellama:7b
   temperature: 0.2
   timeout: 60
 
@@ -171,11 +151,13 @@ logging:
 
 ## Architecture
 
-* **Spring Boot Web** – API handling
+* **Spring Boot 3.3.2** – REST API and web interface
 * **OpenAPI Parser** – Ingests and indexes specifications
-* **LangChain4j + Ollama** – Local LLM response generation
+* **LangChain4j 1.3.0 + Ollama** – Local LLM response generation
 * **Caffeine Cache** – Fast in-memory caching
 * **JSON Schema Validator** – Enforces schema compliance
+* **Thymeleaf + Bootstrap** – Web UI for spec management
+* **SpringDoc OpenAPI** – Swagger UI integration
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
@@ -220,25 +202,27 @@ mvn clean install
 mvn test
 ```
 
-**Create Docker image**
+**Package as JAR**
 
 ```bash
 mvn clean package
-docker build -t smart-mock:latest .
+java -jar target/smart-mock-*.jar
 ```
 
 ---
 
 ## Roadmap
 
+* [x] Web UI for spec upload
+* [x] Swagger UI integration
 * [ ] WebSocket support
 * [ ] GraphQL schema support
 * [ ] Stateful scenarios
 * [ ] Request/response recording
-* [ ] UI dashboard
 * [ ] Multiple spec support
 * [ ] Authentication simulation
 * [ ] Custom data generators
+* [ ] Docker deployment optimization
 
 ---
 
