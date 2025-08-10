@@ -1,87 +1,96 @@
-# Smart Mock - AI-Powered API Mock Server
+# Smart Mock – AI-Powered API Mock Server
 
-An intelligent API mock server that uses Ollama and LangChain4j to generate realistic, context-aware responses based on OpenAPI specifications.
+An intelligent API mock server that uses **Ollama** and **LangChain4j** to generate realistic, context-aware responses from your OpenAPI specifications.
+
+---
 
 ## Features
 
-- **Dynamic Mock Generation**: Automatically generate responses matching your OpenAPI spec
-- **Intelligent Responses**: LLM-powered responses that understand context and relationships
-- **Multiple Scenarios**: Support for happy path, edge cases, errors, and rate limiting
-- **Deterministic Control**: Seed-based generation for reproducible responses
-- **Response Caching**: Fast responses with intelligent caching
-- **Latency Simulation**: Simulate real-world network conditions
-- **JSON Schema Validation**: Ensure all responses conform to your API spec
+* **Dynamic Mock Generation** – Automatically create responses matching your OpenAPI spec.
+* **Context-Aware Responses** – LLM-powered output that respects schema relationships and semantics.
+* **Multiple Scenarios** – Test happy paths, edge cases, validation errors, rate limits, and server errors.
+* **Deterministic Mode** – Seed-based generation for reproducible test results.
+* **Response Caching** – High-performance caching for faster subsequent calls.
+* **Latency Simulation** – Mimic real-world network delays.
+* **Schema Compliance** – JSON Schema validation for every generated response.
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 
-- Java 21+
-- Docker and Docker Compose
-- Maven
+* Java 21+
+* Docker & Docker Compose
+* Maven
 
-### Running with Docker Compose
+### Run with Docker Compose
 
-1. Build the application:
-```bash
-mvn clean package
-```
+1. **Build the application**
 
-2. Start the services:
-```bash
-docker-compose up -d
-```
+   ```bash
+   mvn clean package
+   ```
 
-3. Initialize Ollama models:
-```bash
-chmod +x init-ollama.sh
-./init-ollama.sh
-```
+2. **Start services**
 
-4. Load an OpenAPI spec:
-```bash
-curl -X POST http://localhost:8080/admin/spec \
-  -H "Content-Type: application/yaml" \
-  --data-binary @src/main/resources/sample-petstore.yaml
-```
+   ```bash
+   docker-compose up -d
+   ```
 
-5. Test the mock endpoints:
-```bash
-# List pets
-curl http://localhost:8080/mock/pets
+3. **Initialize Ollama models**
 
-# Get specific pet
-curl http://localhost:8080/mock/pets/123
+   ```bash
+   chmod +x init-ollama.sh
+   ./init-ollama.sh
+   ```
 
-# Create a pet
-curl -X POST http://localhost:8080/mock/pets \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Fluffy", "category": "cat"}'
-```
+4. **Load an OpenAPI spec**
 
-### Running Locally
+   ```bash
+   curl -X POST http://localhost:8080/admin/spec \
+     -H "Content-Type: application/yaml" \
+     --data-binary @src/main/resources/sample-petstore.yaml
+   ```
 
-1. Install and start Ollama:
-```bash
-# macOS
-brew install ollama
-ollama serve
+5. **Test mock endpoints**
 
-# Pull required models
-ollama pull llama3.1:8b
-ollama pull mistral-nemo
-```
+   ```bash
+   curl http://localhost:8080/mock/pets
+   curl http://localhost:8080/mock/pets/123
+   curl -X POST http://localhost:8080/mock/pets \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Fluffy", "category": "cat"}'
+   ```
 
-2. Run the application:
-```bash
-mvn spring-boot:run
-```
+### Run Locally (without Docker)
 
-## Control Headers
+1. **Install and start Ollama**
 
-Control mock behavior using special headers:
+   ```bash
+   # macOS
+   brew install ollama
+   ollama serve
 
-### Scenario Control
+   # Pull required models
+   ollama pull codellama:7b
+   ollama pull mistral-nemo
+   ```
+
+2. **Start Smart Mock**
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+---
+
+## Controlling Mock Behaviour
+
+Smart Mock supports special headers to control output.
+
+### Scenarios
+
 ```bash
 # Happy path (default)
 curl -H "X-Mock-Scenario: happy" http://localhost:8080/mock/pets
@@ -99,41 +108,44 @@ curl -H "X-Mock-Scenario: rate-limit" http://localhost:8080/mock/pets
 curl -H "X-Mock-Scenario: server-error" http://localhost:8080/mock/pets
 ```
 
-### Determinism and Variability
+### Determinism & Variability
+
 ```bash
 # Fixed seed for reproducible responses
 curl -H "X-Mock-Seed: 42" http://localhost:8080/mock/pets
 
-# Control randomness (0.0 = deterministic, 1.0 = maximum variation)
+# Control randomness (0.0 = deterministic, 1.0 = max variation)
 curl -H "X-Mock-Temperature: 0.5" http://localhost:8080/mock/pets
 ```
 
 ### Latency Simulation
-```bash
-# Add 250ms latency
-curl -H "X-Mock-Latency: 250ms" http://localhost:8080/mock/pets
 
-# Add 1.5 second latency
+```bash
+curl -H "X-Mock-Latency: 250ms" http://localhost:8080/mock/pets
 curl -H "X-Mock-Latency: 1.5s" http://localhost:8080/mock/pets
 ```
 
 ### Status Override
+
 ```bash
-# Force specific status code
 curl -H "X-Mock-Status: 201" http://localhost:8080/mock/pets
 ```
 
+---
+
 ## API Endpoints
 
-### Admin Endpoints
+### Admin
 
-- `POST /admin/spec` - Upload OpenAPI specification (YAML/JSON)
-- `POST /admin/spec/file?filePath=/path/to/spec.yaml` - Load spec from file
-- `GET /admin/spec` - Get current loaded specification
+* `POST /admin/spec` – Upload OpenAPI spec (YAML/JSON)
+* `POST /admin/spec/file?filePath=/path/to/spec.yaml` – Load spec from file
+* `GET /admin/spec` – Retrieve current spec
 
-### Mock Endpoints
+### Mock
 
-All paths defined in your OpenAPI spec are available under `/mock/*`
+All OpenAPI-defined paths are available under `/mock/*`.
+
+---
 
 ## Configuration
 
@@ -155,13 +167,15 @@ logging:
     ca.bazlur.smartmock: INFO
 ```
 
+---
+
 ## Architecture
 
-- **Spring Boot Web**: Traditional servlet-based HTTP handling
-- **OpenAPI Parser**: Swagger parser for spec ingestion
-- **LangChain4j + Ollama**: Local LLM for response generation
-- **Caffeine Cache**: High-performance response caching
-- **JSON Schema Validator**: NetworkNT validator for schema compliance
+* **Spring Boot Web** – API handling
+* **OpenAPI Parser** – Ingests and indexes specifications
+* **LangChain4j + Ollama** – Local LLM response generation
+* **Caffeine Cache** – Fast in-memory caching
+* **JSON Schema Validator** – Enforces schema compliance
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
@@ -181,50 +195,65 @@ logging:
                                         └─────────────┘
 ```
 
+---
+
 ## Performance
 
-- **Cold start**: 2-5 seconds (first LLM generation)
-- **Cached responses**: <50ms
-- **Throughput**: 100-500 RPS (cached), 5-20 RPS (uncached)
-- **Memory**: 512MB-2GB depending on cache size
+* **Cold start**: 2–5s (first LLM call)
+* **Cached responses**: <50ms
+* **Throughput**: 100–500 RPS (cached), 5–20 RPS (uncached)
+* **Memory usage**: 512MB–2GB (depends on cache size)
+
+---
 
 ## Development
 
-### Building from Source
+**Build from source**
+
 ```bash
 mvn clean install
 ```
 
-### Running Tests
+**Run tests**
+
 ```bash
 mvn test
 ```
 
-### Creating a Docker Image
+**Create Docker image**
+
 ```bash
 mvn clean package
 docker build -t smart-mock:latest .
 ```
 
+---
+
 ## Roadmap
 
-- [ ] WebSocket support
-- [ ] GraphQL schema support
-- [ ] Stateful mock scenarios
-- [ ] Request/response recording
-- [ ] UI dashboard
-- [ ] Multi-spec support
-- [ ] Authentication simulation
-- [ ] Custom data generators
+* [ ] WebSocket support
+* [ ] GraphQL schema support
+* [ ] Stateful scenarios
+* [ ] Request/response recording
+* [ ] UI dashboard
+* [ ] Multiple spec support
+* [ ] Authentication simulation
+* [ ] Custom data generators
+
+---
 
 ## License
 
-MIT
+MIT License
+
+---
 
 ## Contributing
 
-Pull requests are welcome! Please read our contributing guidelines first.
+Pull requests are welcome. Please see the contributing guidelines before submitting changes.
+
+---
 
 ## Support
 
-For issues and questions, please use the GitHub issue tracker.
+Use the GitHub issue tracker for questions or bug reports.
