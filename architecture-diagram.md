@@ -205,12 +205,12 @@ graph LR
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Default
-    Default --> Happy: X-Mock-Scenario: happy
-    Default --> Edge: X-Mock-Scenario: edge
-    Default --> Invalid: X-Mock-Scenario: invalid
-    Default --> RateLimit: X-Mock-Scenario: rate-limit
-    Default --> ServerError: X-Mock-Scenario: server-error
+    [*] --> DefaultState
+    DefaultState --> Happy: header=happy
+    DefaultState --> Edge: header=edge  
+    DefaultState --> Invalid: header=invalid
+    DefaultState --> RateLimit: header=rate-limit
+    DefaultState --> ServerError: header=server-error
     
     Happy --> GenerateSuccess: Generate full data
     Edge --> GenerateMinimal: Generate edge cases
@@ -223,24 +223,6 @@ stateDiagram-v2
     Generate400 --> [*]
     Generate429 --> [*]
     Generate500 --> [*]
-
-    note right of Happy
-        Full, realistic data
-        All optional fields
-        Success responses
-    end note
-
-    note right of Edge
-        Minimal valid data
-        Empty arrays
-        Null optional fields
-    end note
-
-    note right of Invalid
-        400 Bad Request
-        Validation errors
-        Missing required fields
-    end note
 ```
 
 ## Cache Strategy
@@ -293,16 +275,16 @@ graph TD
     Index --> ExtractPaths[Extract Paths]
     ExtractPaths --> ExtractOps[Extract Operations]
     ExtractOps --> ExtractSchemas[Extract Schemas]
-    ExtractSchemas --> ResolveRefs[Resolve $refs]
+    ExtractSchemas --> ResolveRefs["Resolve refs"]
     ResolveRefs --> BuildIndex[Build Endpoint Index]
     
     BuildIndex --> Ready[Ready to Serve]
     
-    subgraph "Indexed Data Structure"
-        PathPattern[Path Pattern<br/>/api/pets/{id}]
-        HTTPMethod[HTTP Methods<br/>GET, POST, PUT, DELETE]
-        ResponseSchemas[Response Schemas<br/>200, 400, 500]
-        Parameters[Parameters<br/>Path, Query, Body]
+    subgraph IndexedData["Indexed Data Structure"]
+        PathPattern["Path Pattern<br/>/api/pets/{id}"]
+        HTTPMethod["HTTP Methods<br/>GET, POST, PUT, DELETE"]
+        ResponseSchemas["Response Schemas<br/>200, 400, 500"]
+        Parameters["Parameters<br/>Path, Query, Body"]
     end
     
     BuildIndex --> PathPattern
