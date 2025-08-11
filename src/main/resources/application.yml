@@ -23,7 +23,7 @@ app:
 ollama:
   base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
   model-name: ${OLLAMA_MODEL:codellama:7b}
-  temperature: ${OLLAMA_TEMPERATURE:0.2}
+  temperature: ${OLLAMA_TEMPERATURE:0.7}
   timeout: ${OLLAMA_TIMEOUT:60}
 
 logging:

@@ -46,7 +46,7 @@ public class LangChainConfig {
     return OllamaLanguageModel.builder()
         .baseUrl(ollamaBaseUrl)
         .modelName("mistral-nemo")
-        .temperature(0.1)
+        .temperature(0.7)
         .timeout(Duration.ofSeconds(timeoutSeconds))
         .build();
   }
