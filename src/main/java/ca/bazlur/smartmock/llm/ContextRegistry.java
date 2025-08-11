@@ -1,21 +1,33 @@
 package ca.bazlur.smartmock.llm;
 
-import lombok.RequiredArgsConstructor;
+import ca.bazlur.smartmock.llm.external.ExternalBlockLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ContextRegistry {
 
-  private final List<ContextBlock> blocks; // Spring injects all @Component ContextBlock beans
+  private final List<ContextBlock> allBlocks;
+  
+  public ContextRegistry(List<ContextBlock> builtInBlocks, ExternalBlockLoader externalLoader) {
+    this.allBlocks = new ArrayList<>();
+    this.allBlocks.addAll(builtInBlocks);
+    if (externalLoader != null) {
+      this.allBlocks.addAll(externalLoader.getExternalBlocks());
+    }
+    log.info("ContextRegistry initialized with {} total blocks ({} built-in, {} external)", 
+             allBlocks.size(), 
+             builtInBlocks.size(), 
+             externalLoader != null ? externalLoader.getExternalBlocks().size() : 0);
+  }
 
   public List<ContextBlock> select(EndpointInfo info, int maxBlocks, double minScore, int budgetChars) {
-    var ranked = blocks.stream()
+    var ranked = allBlocks.stream()
         .map(b -> new Scored<>(b, safeScore(b, info)))
         .filter(s -> s.score >= minScore)
         .sorted(Comparator.comparingDouble((Scored<ContextBlock> s) -> s.score).reversed())
@@ -40,7 +52,7 @@ public class ContextRegistry {
     }
 
     if (chosen.isEmpty()) {
-      blocks.stream()
+      allBlocks.stream()
           .filter(b -> b.id().startsWith("generic.structured"))
           .findFirst()
           .ifPresent(chosen::add);

@@ -26,13 +26,47 @@ public class OrdersBlock implements ContextBlock {
   }
 
   public String render(EndpointInfo i) {
-    return """
-        ORDERS CONTEXT:
-        - IDs like "ORD-2025-000123", timestamps ISO-8601, totals with currency.
-        - Status: pending, processing, shipped, delivered, cancelled.
-        - Shipping: method, carrier, tracking; Payment: masked card/PayPal/Apple Pay.
-        """;
+    StringBuilder sb = new StringBuilder();
+    sb.append("ORDERS CONTEXT:\n");
+    sb.append("Example of excellent order response:\n");
+    sb.append(ORDER_EXAMPLE);
+    sb.append("\nRules for your response:\n");
+    sb.append("- Order IDs like ORD-2024-xxxxx or uuid format\n");
+    sb.append("- Include customer reference, items array, shipping, payment\n");
+    sb.append("- Status: pending/processing/shipped/delivered/cancelled\n");
+    sb.append("- Dates in ISO-8601 format\n");
+    sb.append("- Total = sum(items) + shipping + tax\n");
+    
+    return sb.toString();
   }
+  
+  private static final String ORDER_EXAMPLE = """
+      {
+        "orderId": "ORD-2024-78234",
+        "customerId": "usr-456789",
+        "orderDate": "2024-01-25T14:30:00Z",
+        "status": "processing",
+        "items": [
+          {
+            "productId": "prod-789",
+            "productName": "Sony WH-1000XM5",
+            "quantity": 1,
+            "unitPrice": 399.99,
+            "subtotal": 399.99
+          }
+        ],
+        "shipping": {
+          "method": "Express 2-Day",
+          "cost": 12.99
+        },
+        "totals": {
+          "subtotal": 399.99,
+          "shipping": 12.99,
+          "tax": 35.00,
+          "total": 447.98
+        }
+      }
+      """;
 
   private static String safe(String s) {
     return s == null ? "" : s.toLowerCase();

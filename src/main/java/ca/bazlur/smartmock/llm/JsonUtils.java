@@ -14,11 +14,10 @@ public final class JsonUtils {
     if (maybeJson == null || maybeJson.isBlank()) return "";
     try {
       JsonNode node = mapper.readTree(maybeJson);
-      // Drop heavy fields commonly present in schemas
       dropFieldDeep(node, "examples");
       dropFieldDeep(node, "description");
       dropFieldDeep(node, "externalDocs");
-      return node.toString(); // minified
+      return node.toString();
     } catch (Exception e) {
       return sanitize(maybeJson);
     }

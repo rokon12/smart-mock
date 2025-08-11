@@ -29,6 +29,8 @@ public class PromptBuilder {
 
   private final ObjectMapper objectMapper;
   private final ContextRegistry contextRegistry;
+  private final RequestResponseCorrelator requestResponseCorrelator;
+  private final FieldSemantics fieldSemantics;
 
   public String buildGenerationPrompt(@NonNull Plan plan) {
     final Scenario scenario = plan.getScenario() == null ? Scenario.HAPPY : plan.getScenario();
@@ -62,12 +64,22 @@ public class PromptBuilder {
     sb.append("- Status code: ").append(plan.getStatusCode()).append(NL);
     sb.append("- Endpoint: ").append(endpointPath).append(NL).append(NL);
 
+    String correlations = requestResponseCorrelator.generateCorrelations(plan.getRequestContext());
+    if (!correlations.isBlank()) {
+      sb.append(correlations).append(NL);
+    }
+
     for (ContextBlock b : chosenBlocks) {
       sb.append(b.render(info)).append(NL);
     }
 
     sb.append(STRICT_RULES).append(NL);
     sb.append(scenarioDelta(scenario)).append(NL).append(NL);
+
+    String fieldGuidance = fieldSemantics.analyzeSchema(info.jsonSchemaMinified());
+    if (!fieldGuidance.isBlank()) {
+      sb.append(fieldGuidance).append(NL);
+    }
 
     if (!info.jsonSchemaMinified().isBlank()) {
       appendSection(sb, "JSON Schema", info.jsonSchemaMinified());
@@ -85,9 +97,14 @@ public class PromptBuilder {
   }
 
   public String buildRepairPrompt(@NonNull String invalidJson, @NonNull String validationError) {
+    String semanticHints = "";
+    if (validationError.toLowerCase().contains("field") || validationError.toLowerCase().contains("property")) {
+      semanticHints = "\nUse semantic understanding: emails must be valid, dates in ISO format, prices as numbers, etc.\n";
+    }
+    
     return String.format(REPAIR_TEMPLATE,
         JsonUtils.truncateWithNotice(invalidJson.trim(), 6000),
-        JsonUtils.truncateWithNotice(validationError.trim(), 2000));
+        JsonUtils.truncateWithNotice(validationError.trim(), 2000)) + semanticHints;
   }
 
   private static String sanitize(String s) {

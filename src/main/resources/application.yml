@@ -51,6 +51,10 @@ smart-mock:
   storage:
     enabled: ${STORAGE_ENABLED:true}
     path: ${STORAGE_PATH:${user.home}/.smart-mock/schemas}
+  blocks:
+    external:
+      enabled: ${EXTERNAL_BLOCKS_ENABLED:true}
+      path: ${EXTERNAL_BLOCKS_PATH:${user.home}/.smart-mock/blocks}
 
 # Swagger UI Configuration
 springdoc:
