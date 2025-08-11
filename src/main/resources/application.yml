@@ -17,8 +17,8 @@ app:
     swagger-parser: @swagger-parser.version@
     json-schema-validator: @json-schema-validator.version@
   java:
-    version: @maven.compiler.target@
-    source: @maven.compiler.source@
+    version: 21
+    source: 21
 
 ollama:
   base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
