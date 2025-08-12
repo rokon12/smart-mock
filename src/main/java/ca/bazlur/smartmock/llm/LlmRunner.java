@@ -59,16 +59,45 @@ public class LlmRunner {
     }
 
     private String extractJson(String text) {
-        int startIndex = text.indexOf('{');
-        int endIndex = text.lastIndexOf('}');
+        // First try to find a complete JSON array
+        int arrayStart = text.indexOf('[');
+        int arrayEnd = text.lastIndexOf(']');
         
-        if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) {
-            startIndex = text.indexOf('[');
-            endIndex = text.lastIndexOf(']');
+        if (arrayStart != -1 && arrayEnd != -1 && arrayStart < arrayEnd) {
+            return text.substring(arrayStart, arrayEnd + 1);
         }
         
-        if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
-            return text.substring(startIndex, endIndex + 1);
+        // Then try to find a complete JSON object
+        int objStart = text.indexOf('{');
+        int objEnd = text.lastIndexOf('}');
+        
+        if (objStart != -1 && objEnd != -1 && objStart < objEnd) {
+            String extracted = text.substring(objStart, objEnd + 1);
+            
+            // Check if this looks like array items without array wrapper
+            // If we have multiple objects separated by commas, wrap them in an array
+            if (extracted.contains("},") && !extracted.startsWith("[")) {
+                // Count opening braces to see if we have multiple objects
+                int braceCount = 0;
+                boolean inString = false;
+                char prevChar = ' ';
+                
+                for (char c : extracted.toCharArray()) {
+                    if (c == '"' && prevChar != '\\') {
+                        inString = !inString;
+                    } else if (!inString && c == '{') {
+                        braceCount++;
+                    }
+                    prevChar = c;
+                }
+                
+                // If we have multiple objects, wrap them in an array
+                if (braceCount > 1) {
+                    return "[" + extracted + "]";
+                }
+            }
+            
+            return extracted;
         }
         
         return "{}";

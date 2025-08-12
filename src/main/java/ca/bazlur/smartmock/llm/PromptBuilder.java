@@ -110,6 +110,13 @@ public class PromptBuilder {
 
     if (!info.jsonSchemaMinified().isBlank()) {
       appendSection(sb, "JSON Schema", info.jsonSchemaMinified());
+      
+      // Add explicit array generation instruction if schema is for an array
+      if (info.jsonSchemaMinified().contains("\"type\":\"array\"") || 
+          info.jsonSchemaMinified().contains("\"type\" : \"array\"")) {
+        sb.append("IMPORTANT: The schema expects an ARRAY. Your response MUST start with '[' and end with ']'").append(NL);
+        sb.append("Generate a JSON array containing the requested number of items.").append(NL).append(NL);
+      }
     }
     if (!info.requestContextMinified().isBlank()) {
       appendSection(sb, "Request Context", info.requestContextMinified());
