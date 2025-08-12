@@ -169,6 +169,13 @@ public class ResponsePlanner {
         putIfNonNull(ctx, "operationId", endpoint.getOperationId());
         putIfNonNull(ctx, "summary", endpoint.getSummary());
 
+        // Include seed in context to influence LLM generation
+        String seed = request.getHeader("X-Mock-Seed");
+        if (seed != null) {
+            ctx.put("seed", seed);
+            ctx.put("randomSeed", seed.hashCode());
+        }
+
         if (request.getQueryString() != null && !request.getQueryString().isEmpty()) {
             ctx.put("queryString", request.getQueryString());
         }

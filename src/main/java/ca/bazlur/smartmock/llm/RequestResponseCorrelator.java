@@ -36,6 +36,11 @@ public class RequestResponseCorrelator {
         String method = extractString(requestContext, "method");
         Map<String, Object> pathParams = extractMap(requestContext, "pathParameters");
         Map<String, Object> queryParams = extractMap(requestContext, "queryParameters");
+        
+        // Also check for 'query' key (used in ResponsePlanner)
+        if (queryParams == null || queryParams.isEmpty()) {
+            queryParams = extractMap(requestContext, "query");
+        }
         Object requestBody = requestContext.get("body");
         
         if (pathParams != null && !pathParams.isEmpty()) {
@@ -99,7 +104,8 @@ public class RequestResponseCorrelator {
                 correlations.add(String.format("Response should reflect pagination: %s=%s", param, value));
             } else if (param.equals("limit") || param.equals("size") || param.equals("count")) {
                 int limit = parseInteger(value, 10);
-                correlations.add(String.format("Return exactly %d items (or fewer if less available)", limit));
+                correlations.add(String.format("MANDATORY: You MUST return EXACTLY %d items in the array", limit));
+                correlations.add(String.format("The 'users' array (or main array) MUST contain %d unique items", limit));
             }
             else if (param.equals("search") || param.equals("q") || param.equals("query")) {
                 correlations.add(String.format("All items must be relevant to search term '%s'", value));
