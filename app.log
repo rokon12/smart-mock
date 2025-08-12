@@ -1,0 +1,72 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< ca.bazlur:smart-mock >------------------------
+[INFO] Building Smart Mock Server 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.3.2:run (default-cli) > test-compile @ smart-mock >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ smart-mock ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 5 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ smart-mock ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 50 source files with javac [forked debug parameters release 21] to target/classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ smart-mock ---
+[INFO] skip non existing resourceDirectory /Users/bazlur/projects/smart-mock/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ smart-mock ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 9 source files with javac [forked debug parameters release 21] to target/test-classes
+[INFO] 
+[INFO] <<< spring-boot:3.3.2:run (default-cli) < test-compile @ smart-mock <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.3.2:run (default-cli) @ smart-mock ---
+[INFO] Attaching agents: []
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.2)
+
+06:41:30.777 [main] INFO  c.b.smartmock.SmartMockApplication - Starting SmartMockApplication using Java 21.0.5 with PID 16600 (/Users/bazlur/projects/smart-mock/target/classes started by bazlur in /Users/bazlur/projects/smart-mock)
+06:41:30.778 [main] INFO  c.b.smartmock.SmartMockApplication - No active profile set, falling back to 1 default profile: "default"
+06:41:31.256 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+06:41:31.264 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+06:41:31.264 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26]
+06:41:31.293 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+06:41:31.293 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 493 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+06:41:31.376 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded external block 'banking.accounts.v1' from banking.yaml
+06:41:31.378 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded external block 'inventory.warehouse.v1' from inventory.yaml
+06:41:31.378 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded 2 external context blocks from /Users/bazlur/.smart-mock/blocks
+06:41:31.384 [main] INFO  c.b.smartmock.config.LangChainConfig - Configuring Ollama language model: codellama:7b at http://localhost:11434
+06:41:31.477 [main] INFO  c.b.smartmock.llm.ContextRegistry - ContextRegistry initialized with 16 total blocks (14 built-in, 2 external)
+06:41:31.519 [main] INFO  c.b.smartmock.config.LangChainConfig - Configuring fallback Ollama model
+06:41:31.597 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+06:41:31.880 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
+06:41:31.886 [main] INFO  c.b.smartmock.SmartMockApplication - Started SmartMockApplication in 1.292 seconds (process running for 1.448)
+06:41:31.894 [main] INFO  c.b.s.service.SchemaStorageService - Loaded 2 schemas from disk
+06:41:31.957 [main] INFO  c.b.smartmock.openapi.OpenApiIndex - Indexed 12 path patterns from OpenAPI spec
+06:41:31.957 [main] INFO  c.b.smartmock.service.SchemaManager - Added schema 'E-Commerce API' with ID 'e-commerce-api'. Total schemas: 1
+06:41:31.962 [main] INFO  c.b.smartmock.openapi.OpenApiIndex - Indexed 3 path patterns from OpenAPI spec
+06:41:31.962 [main] INFO  c.b.smartmock.service.SchemaManager - Added schema 'Pet Store API' with ID 'pet-store-api'. Total schemas: 2
+06:41:31.962 [main] INFO  c.b.smartmock.service.SchemaManager - Set active schema to 'pet-store-api'
+06:41:31.962 [main] INFO  c.b.s.s.SchemaPersistenceService - Restored active schema: pet-store-api
+06:41:31.962 [main] INFO  c.b.s.s.SchemaPersistenceService - Loaded 2 schemas from disk
+06:41:40.420 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+06:41:40.420 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+06:41:40.421 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+06:41:40.463 [http-nio-8080-exec-1] INFO  c.bazlur.smartmock.llm.PromptBuilder - Including seed in prompt: pets-test
+06:42:10.165 [http-nio-8080-exec-1] WARN  ca.bazlur.smartmock.llm.LlmRunner - LLM response is not valid JSON, attempting to extract JSON
+06:42:31.898 [scheduling-1] INFO  c.b.s.service.SchemaStorageService - Cleared all stored schemas
+06:42:31.913 [scheduling-1] INFO  c.b.s.s.SchemaPersistenceService - Saved 2 schemas to disk

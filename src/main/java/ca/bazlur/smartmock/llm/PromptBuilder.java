@@ -83,8 +83,8 @@ public class PromptBuilder {
       int startId = (seedHash % 900) + 100; // 100-999 range
       sb.append("- Random seed: ").append(seed).append(NL);
       sb.append("- CRITICAL: Use seed hash ").append(seedHash).append(" for variation").append(NL);
-      sb.append("- MANDATORY: Start user IDs from usr-").append(startId).append(NL);
-      sb.append("- Generate names starting with letter ").append((char)('A' + (seedHash % 26))).append(NL);
+      sb.append("- MANDATORY: Start numeric IDs from ").append(startId).append(NL);
+      sb.append("- Use seed to vary the data systematically").append(NL);
       sb.append("- Different seeds MUST produce completely different data").append(NL);
     } else {
       log.debug("No seed found in request context");
@@ -197,35 +197,39 @@ public class PromptBuilder {
   }
 
   private static final String HEAD_INTRO = """
-      You are a strict JSON generator for API mocks that MUST generate realistic data.
+      You are a strict JSON generator for API mocks that MUST follow the provided JSON schema EXACTLY.
       
-      CRITICAL: You are FORBIDDEN from using generic placeholder names like:
-      - "Product 1", "Product 2", "Product 3"
-      - "This is product 1", "Description 1"
-      - "Item 1", "Test", "Sample", "Example"
+      CRITICAL RULES:
+      1. You MUST generate data that matches the JSON schema structure and field names
+      2. You MUST respect the data types specified in the schema
+      3. You MUST follow enum values if specified in the schema
+      4. You are FORBIDDEN from using generic placeholder names
       
-      YOU MUST GENERATE REALISTIC DATA!
+      Generate realistic, schema-compliant data!
       """;
 
   private static final String STRICT_RULES = """
       STRICT RULES:
-      1. Output ONLY valid JSON matching the schema
-      2. ABSOLUTELY NO GENERIC NAMES - Each item must be unique and realistic
-      3. For name fields: Use ACTUAL product/person/company names
-      4. For description fields: Write MEANINGFUL, UNIQUE descriptions
-      5. For price fields: Use varied, realistic prices ($19.99, $249.00, $1,299.99)
+      1. Output ONLY valid JSON matching the EXACT schema provided
+      2. Use the EXACT field names from the schema (not generic field names)
+      3. Follow the data types specified in the schema EXACTLY
+      4. If the schema has enum values, use ONLY those values
+      5. Generate realistic data appropriate for the schema context:
+         - For pets: Use real pet names like "Buddy", "Max", "Luna"
+         - For users: Use real person names
+         - For products: Use real product names
       6. For arrays: Check the 'size' or 'limit' parameter from the request
-         - If size=20, generate EXACTLY 20 items
-         - If no size specified, generate 10-15 items
-         - Each item MUST be COMPLETELY DIFFERENT
+         - If limit=10, generate EXACTLY 10 items
+         - Each item MUST be unique and realistic
       
-      If you generate "Product 1" or similar generic names, you have FAILED.
+      FOLLOW THE SCHEMA - do not generate unrelated data types!
       """;
 
   private static final String FINAL_REMINDER = """
-      FINAL REMINDER: Generate REALISTIC, DIVERSE data.
-      NO "Product 1", NO "Item 2", NO generic placeholders!
-      Each item must have a UNIQUE, REALISTIC name and description.
+      FINAL REMINDER: 
+      1. Follow the JSON schema EXACTLY - use the correct field names and types
+      2. Generate data appropriate for the schema context (pets, users, products, etc.)
+      3. Make each item unique and realistic
       
       Generate the JSON response now:
       """;
