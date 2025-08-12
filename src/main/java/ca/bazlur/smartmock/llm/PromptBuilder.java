@@ -101,6 +101,13 @@ public class PromptBuilder {
     }
 
     sb.append(STRICT_RULES).append(NL);
+    
+    // Add extra emphasis for error scenarios
+    if (scenario == Scenario.INVALID || scenario == Scenario.RATE_LIMIT || scenario == Scenario.SERVER_ERROR) {
+      sb.append("CRITICAL: This is an ERROR scenario (").append(scenario).append(")!").append(NL);
+      sb.append("DO NOT generate successful/valid data. Generate an ERROR response instead!").append(NL);
+    }
+    
     sb.append(scenarioDelta(scenario)).append(NL).append(NL);
 
     String fieldGuidance = fieldSemantics.analyzeSchema(info.jsonSchemaMinified());
@@ -195,7 +202,10 @@ public class PromptBuilder {
       case EDGE ->
           "- Use boundary values (min/max, empty arrays, very long but realistic strings) while keeping names realistic.";
       case INVALID ->
-          "- Generate a validation error response with specific field errors and helpful messages.";
+          "- IMPORTANT: Generate an ERROR response, NOT valid data!\n" +
+          "- Create a JSON error object with validation errors\n" +
+          "- Include fields like: 'errors', 'message', 'details'\n" +
+          "- Example: {\"errors\": [{\"field\": \"name\", \"message\": \"Name is required\"}], \"message\": \"Validation failed\"}";
       case RATE_LIMIT ->
           "- Generate a rate limit error with a Retry-After header (e.g., 60 seconds) and a clear message.";
       case SERVER_ERROR ->

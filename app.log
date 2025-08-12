@@ -5,17 +5,6 @@
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
-[INFO] --- clean:3.3.2:clean (default-clean) @ smart-mock ---
-[INFO] Deleting /Users/bazlur/projects/smart-mock/target
-[INFO] 
-[INFO] --- resources:3.3.1:resources (default-resources) @ smart-mock ---
-[INFO] Copying 1 resource from src/main/resources to target/classes
-[INFO] Copying 5 resources from src/main/resources to target/classes
-[INFO] 
-[INFO] --- compiler:3.13.0:compile (default-compile) @ smart-mock ---
-[INFO] Recompiling the module because of changed source code.
-[INFO] Compiling 50 source files with javac [forked debug parameters release 21] to target/classes
-[INFO] 
 [INFO] >>> spring-boot:3.3.2:run (default-cli) > test-compile @ smart-mock >>>
 [INFO] 
 [INFO] --- resources:3.3.1:resources (default-resources) @ smart-mock ---
@@ -29,8 +18,7 @@
 [INFO] skip non existing resourceDirectory /Users/bazlur/projects/smart-mock/src/test/resources
 [INFO] 
 [INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ smart-mock ---
-[INFO] Recompiling the module because of changed dependency.
-[INFO] Compiling 9 source files with javac [forked debug parameters release 21] to target/test-classes
+[INFO] Nothing to compile - all classes are up to date.
 [INFO] 
 [INFO] <<< spring-boot:3.3.2:run (default-cli) < test-compile @ smart-mock <<<
 [INFO] 
@@ -48,85 +36,29 @@ Standard Commons Logging discovery in action with spring-jcl: please remove comm
 
  :: Spring Boot ::                (v3.3.2)
 
-06:51:25.578 [main] INFO  c.b.smartmock.SmartMockApplication - Starting SmartMockApplication using Java 21.0.5 with PID 18794 (/Users/bazlur/projects/smart-mock/target/classes started by bazlur in /Users/bazlur/projects/smart-mock)
-06:51:25.580 [main] INFO  c.b.smartmock.SmartMockApplication - No active profile set, falling back to 1 default profile: "default"
-06:51:26.061 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
-06:51:26.067 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-06:51:26.067 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26]
-06:51:26.093 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-06:51:26.094 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 489 ms
+07:14:23.870 [main] INFO  c.b.smartmock.SmartMockApplication - Starting SmartMockApplication using Java 21.0.5 with PID 22217 (/Users/bazlur/projects/smart-mock/target/classes started by bazlur in /Users/bazlur/projects/smart-mock)
+07:14:23.871 [main] INFO  c.b.smartmock.SmartMockApplication - No active profile set, falling back to 1 default profile: "default"
+07:14:24.420 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+07:14:24.427 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+07:14:24.428 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26]
+07:14:24.458 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+07:14:24.459 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 555 ms
 Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
-06:51:26.197 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded external block 'banking.accounts.v1' from banking.yaml
-06:51:26.200 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded external block 'inventory.warehouse.v1' from inventory.yaml
-06:51:26.200 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded 2 external context blocks from /Users/bazlur/.smart-mock/blocks
-06:51:26.206 [main] INFO  c.b.smartmock.config.LangChainConfig - Configuring Ollama language model: codellama:7b at http://localhost:11434
-06:51:26.291 [main] INFO  c.b.smartmock.llm.ContextRegistry - ContextRegistry initialized with 16 total blocks (14 built-in, 2 external)
-06:51:26.338 [main] INFO  c.b.smartmock.config.LangChainConfig - Configuring fallback Ollama model
-06:51:26.410 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
-06:51:26.683 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
-06:51:26.690 [main] INFO  c.b.smartmock.SmartMockApplication - Started SmartMockApplication in 1.297 seconds (process running for 1.451)
-06:51:26.692 [main] INFO  c.b.s.service.SchemaStorageService - Loaded 0 schemas from disk
-06:51:26.692 [main] INFO  c.b.s.s.SchemaPersistenceService - No persisted schemas found
-06:51:55.217 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-06:51:55.217 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-06:51:55.218 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
-06:51:55.240 [http-nio-8080-exec-1] ERROR c.b.s.controller.MockController - Error generating mock response
-org.springframework.web.server.ResponseStatusException: 503 SERVICE_UNAVAILABLE "No active schema available. Please upload and activate an OpenAPI specification."
-	at ca.bazlur.smartmock.service.MockService.lambda$generate$0(MockService.java:61)
-	at java.base/java.util.Optional.orElseThrow(Optional.java:403)
-	at ca.bazlur.smartmock.service.MockService.generate(MockService.java:61)
-	at ca.bazlur.smartmock.controller.MockController.handleMockRequest(MockController.java:28)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188)
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926)
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831)
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
-	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.servlet.resource.ResourceUrlEncodingFilter.doFilter(ResourceUrlEncodingFilter.java:66)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:389)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:904)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
+07:14:24.549 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded external block 'banking.accounts.v1' from banking.yaml
+07:14:24.550 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded external block 'inventory.warehouse.v1' from inventory.yaml
+07:14:24.550 [main] INFO  c.b.s.l.external.ExternalBlockLoader - Loaded 2 external context blocks from /Users/bazlur/.smart-mock/blocks
+07:14:24.556 [main] INFO  c.b.smartmock.config.LangChainConfig - Configuring Ollama language model: codellama:7b at http://localhost:11434
+07:14:24.665 [main] INFO  c.b.smartmock.llm.ContextRegistry - ContextRegistry initialized with 16 total blocks (14 built-in, 2 external)
+07:14:24.717 [main] INFO  c.b.smartmock.config.LangChainConfig - Configuring fallback Ollama model
+07:14:24.794 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+07:14:25.108 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
+07:14:25.115 [main] INFO  c.b.smartmock.SmartMockApplication - Started SmartMockApplication in 1.488 seconds (process running for 1.648)
+07:14:25.117 [main] INFO  c.b.s.service.SchemaStorageService - Loaded 0 schemas from disk
+07:14:25.117 [main] INFO  c.b.s.s.SchemaPersistenceService - No persisted schemas found
+07:14:51.740 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+07:14:51.740 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+07:14:51.741 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+07:14:51.801 [http-nio-8080-exec-1] INFO  c.b.smartmock.openapi.OpenApiIndex - Indexed 3 path patterns from OpenAPI spec
+07:14:51.802 [http-nio-8080-exec-1] INFO  c.b.smartmock.service.SchemaManager - Added schema 'Pet Store API' with ID 'pet-store-api'. Total schemas: 1
+07:15:25.127 [scheduling-1] INFO  c.b.s.service.SchemaStorageService - Cleared all stored schemas
+07:15:25.131 [scheduling-1] INFO  c.b.s.s.SchemaPersistenceService - Saved 1 schemas to disk
