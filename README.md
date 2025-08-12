@@ -60,6 +60,175 @@ An intelligent API mock server that uses **Ollama** and **LangChain4j** to gener
 
 ---
 
+## Example Usage
+
+### Basic API Mocking
+
+After uploading your OpenAPI spec (e.g., Pet Store API):
+
+```bash
+# Get a list of pets (default happy scenario)
+curl -X GET 'http://localhost:8080/mock/pets?limit=10' \
+  -H 'accept: application/json'
+
+# Get a specific pet by ID
+curl -X GET 'http://localhost:8080/mock/pets/123' \
+  -H 'accept: application/json'
+
+# Create a new pet
+curl -X POST 'http://localhost:8080/mock/pets' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "Fluffy", "category": "cat", "status": "available"}'
+
+# List users with pagination
+curl -X GET 'http://localhost:8080/mock/users?page=1&size=20' \
+  -H 'accept: application/json'
+```
+
+### Testing Different Scenarios
+
+```bash
+# Test validation errors on POST (400 Bad Request)
+curl -X POST 'http://localhost:8080/mock/pets' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Mock-Scenario: invalid' \
+  -d '{"name": "", "category": "invalid_type"}'
+
+# Response:
+# {
+#   "errors": [
+#     {"field": "name", "message": "Name is required"},
+#     {"field": "category", "message": "Invalid category value. Must be one of: dog, cat, bird, fish, reptile"}
+#   ],
+#   "message": "Validation failed"
+# }
+
+# Test validation errors on PUT (400 Bad Request)
+curl -X PUT 'http://localhost:8080/mock/pets/123' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Mock-Scenario: invalid' \
+  -d '{"status": "unknown"}'
+
+# Response:
+# {
+#   "errors": [
+#     {"field": "status", "message": "Invalid status. Must be one of: available, pending, sold"},
+#     {"field": "name", "message": "Name cannot be empty"}
+#   ],
+#   "message": "Validation failed"
+# }
+
+# Test rate limiting (429 Too Many Requests)
+curl -i -X GET 'http://localhost:8080/mock/pets' \
+  -H 'X-Mock-Scenario: rate-limit'
+
+# Response headers:
+# HTTP/1.1 429
+# Retry-After: 60
+# X-RateLimit-Limit: 100
+# X-RateLimit-Remaining: 0
+
+# Test server errors (500 Internal Server Error)
+curl -X GET 'http://localhost:8080/mock/pets' \
+  -H 'X-Mock-Scenario: server-error'
+
+# Response includes trace ID for debugging:
+# {
+#   "code": 500,
+#   "message": "Internal server error",
+#   "traceId": "7f3a2b1c-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+# }
+
+# Test edge cases (boundary values)
+curl -X GET 'http://localhost:8080/mock/pets' \
+  -H 'X-Mock-Scenario: edge'
+```
+
+### Deterministic Testing with Seeds
+
+```bash
+# Generate consistent data using seeds
+curl -X GET 'http://localhost:8080/mock/users?size=5' \
+  -H 'X-Mock-Seed: test-123'
+
+# Same seed = same response (useful for testing)
+curl -X GET 'http://localhost:8080/mock/users?size=5' \
+  -H 'X-Mock-Seed: test-123'  # Identical response
+
+# Different seed = different data
+curl -X GET 'http://localhost:8080/mock/users?size=5' \
+  -H 'X-Mock-Seed: test-456'  # Different response
+```
+
+### Simulating Network Conditions
+
+```bash
+# Add 500ms latency to simulate slow network
+curl -X GET 'http://localhost:8080/mock/pets' \
+  -H 'X-Mock-Latency: 500ms'
+
+# Combine latency with error scenarios
+curl -X GET 'http://localhost:8080/mock/pets' \
+  -H 'X-Mock-Scenario: server-error' \
+  -H 'X-Mock-Latency: 2s'
+```
+
+### Custom Status Codes
+
+```bash
+# Force a specific status code
+curl -i -X GET 'http://localhost:8080/mock/pets' \
+  -H 'X-Mock-Status: 201'
+
+# Combine with scenarios
+curl -X POST 'http://localhost:8080/mock/pets' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Mock-Status: 409' \
+  -d '{"name": "Max"}'
+```
+
+### Schema Management
+
+```bash
+# Upload a new OpenAPI spec
+curl -X POST 'http://localhost:8080/api/schemas?name=My%20API' \
+  -H 'Content-Type: text/plain' \
+  --data-binary '@my-api-spec.yaml'
+
+# List all schemas
+curl -X GET 'http://localhost:8080/api/schemas'
+
+# Activate a specific schema
+curl -X POST 'http://localhost:8080/api/schemas/my-api-1/activate'
+
+# Delete a schema
+curl -X DELETE 'http://localhost:8080/api/schemas/my-api-1'
+```
+
+### Complex Query Examples
+
+```bash
+# Search with filters and pagination
+curl -X GET 'http://localhost:8080/mock/products?category=electronics&minPrice=100&maxPrice=500&sort=price&page=2&size=10' \
+  -H 'accept: application/json'
+
+# The mock will intelligently interpret query parameters and generate appropriate filtered results
+
+# Test with request body correlation
+curl -X POST 'http://localhost:8080/mock/search' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "laptop",
+    "filters": {
+      "brand": ["Apple", "Dell"],
+      "minPrice": 1000
+    }
+  }'
+# Response will contain items matching the search criteria
+```
+
+---
+
 ## Controlling Mock Behaviour
 
 Smart Mock supports special headers to control output.
